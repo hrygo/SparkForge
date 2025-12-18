@@ -19,6 +19,7 @@ SparkForge 是一个高保真智能引擎框架，旨在通过 **AI 辩论 (Adve
     *   批判性审计：通过 AI 委员会 (The Council) 进行多维度审核，识别单点故障。
     *   硬核规避：提供经过压力测试的解决方案。
 3.  **Action (The Path - 行动)**:
+    *   💧 **Atomic Safety**: 实现了文档与历史记录的“原子化备份与回滚”，确保优化失败时状态可控。
     *   即时路径：产出以动词开头的结构化任务矩阵。
     *   上下文感知：确保所有路径与现有工程结构（`/scripts`, `/docs`）无缝对齐。
 
@@ -26,13 +27,13 @@ SparkForge 是一个高保真智能引擎框架，旨在通过 **AI 辩论 (Adve
 
 ## 📂 核心资源说明
 
-| 目录/文件      | 功能定义      | 关键组件                                                       |
-| :------------- | :------------ | :------------------------------------------------------------- |
-| **`.agent/`**  | 智能体工作流  | `optimize-design-loop.md`: 涵盖备份与一致性校验的闭环优化流。  |
-| **`docs/`**    | 文档资产库    | 存放待评审的原始草案、规划书及决策结果。                       |
-| **`scripts/`** | 自动化工具集  | `dialecta_debate.py`: 核心辩论驱动程序，支持多角色博弈评审。   |
-| **`prompts/`** | Prompt 管理层 | Markdown 驱动的指引集，通过 YAML Front Matter 管理模型元数据。 |
-| **`llm/`**     | LLM 抽象层    | 统一交互接口、供应商配置管理与多模型适配。                     |
+| 目录/文件      | 功能定义      | 关键组件                                                             |
+| :------------- | :------------ | :------------------------------------------------------------------- |
+| **`.agent/`**  | 智能体工作流  | `optimize-design-loop.md`: 支持原子化回滚、冲突检测与历史压缩。      |
+| **`docs/`**    | 文档资产库    | `reports/`: 采用相对路径命名空间的辩论记录；`backup/`: 迭代快照。    |
+| **`scripts/`** | 自动化工具集  | `dialecta_debate.py`: 支持引文越界检测、逻辑脉冲输出与日志自动清理。 |
+| **`prompts/`** | Prompt 管理层 | `adjudicator.md`: 强化引文要求与存在性审查指令。                     |
+| **`llm/`**     | LLM 抽象层    | 统一交互接口、供应商配置管理与多模型适配。                           |
 
 ---
 
@@ -112,31 +113,35 @@ sequenceDiagram
     participant Script as dialecta_debate.py
     participant Council as The Council (LLM Group)
     participant Doc as Target Document
-    participant Backup as docs/backup/{TargetFile}/
+    participant History as history_summary.md
 
     rect rgb(240, 240, 240)
-    Note over Agent, Council: 阶段一：对抗式评审 (The Debate)
-    Agent->>Script: 触发辩论 (传入 Target + History)
-    Script->>Council: 正方 (Affirmative): 提出优化建议与增强亮点
-    Script->>Council: 反方 (Negative): 执行批判性审计与风险识别
-    Council-->>Script: 评审官 (Adjudicator): 给出最终裁决 (Verdict) & 评分
-    Script-->>Agent: 生成辩论报告 (docs/reports/{TargetFile}/)
+    Note over Agent, History: 阶段一：上下文感知 (Contextualization)
+    Agent->>Agent: Step 1: 滚动历史裁剪 (Pruning) & 压缩
+    Agent->>Script: 触发协作 (注入当前目标 + 裁剪后判例)
     end
 
-    rect rgb(255, 248, 220)
-    Note over Agent, Backup: 阶段二：一致性与安全 (Validation)
-    Agent->>Agent: 一致性校验 (防止 Flip-Flop 逻辑震荡)
-    Agent->>Backup: 创建快照备份 (docs/backup/{TargetFile}/)
+    rect rgb(248, 248, 255)
+    Note over Script, Council: 阶段二：安全与对抗 (Safety & Debate)
+    Script->>Script: 命名空间隔离 (Namespace Isolation)
+    par 正反方博弈 (Parallel Execution)
+        Script->>Council: 正方 (Affirmative)
+        Script->>Council: 反方 (Negative)
+    end
+    Council-->>Script: 评审官: 裁决 (Verdict) & 线条引文考核
+    Script->>Script: 引文幻觉审计 (Line Bounds Check)
+    Script-->>Agent: 输出逻辑脉冲 (Logic Pulse) & 报告
     end
 
     rect rgb(224, 255, 224)
-    Note over Agent, Doc: 阶段三：外科手术式改写 (The Surgery)
-    Agent->>Doc: 深度思索及全局规划后，执行多点精准覆盖 (multi_replace_file_content)
-    Agent->>Agent: 更新历史判例 (docs/reports/{TargetFile}/history_summary.md)
+    Note over Agent, Doc: 阶段三：原子化演进 (Atomic Evolution)
+    Agent->>Agent: Step 3: 分数审计 (如 Delta < -10 -> 原子化回滚)
+    Agent->>Doc: 外科手术式改写 (Surgeon Logic)
+    Agent->>History: 更新 Action Trace (记录改写意图)
     end
 
     alt 分数 < 90?
-        Agent->>Script: 自动进入下一轮迭代
+        Agent->>Agent: 携带“影响矩阵”进入下一轮
     else 成功达标
         Agent-->>User: 产出最终定稿
     end
@@ -144,15 +149,15 @@ sequenceDiagram
 
 ### 2. 辩论脚本内部逻辑 (`dialecta_debate.py`)
 脚本不仅是一个调用器，它在内部维护了一个 **“结构化认知” (Structured Cognition)** 过程：
-*   **上下文构建**: 融合用户指令、历史判例 (`--ref`) 与待审材料。
-*   **多模型协同**: 支持为正、反、评三方配置不同的 LLM 模型 (见 `llm/` 配置)，以利用不同模型在逻辑与创意上的特质。
-*   **证据链对齐**: 评审官必须在正反两方的陈述基础上做出判决，确保优化的每一步都有据可查。
+*   **引文真实性审计**: 内置 `Line Bounds Check`，自动识别并警告裁决过程中的引文幻觉（引用了非实有行号）。
+*   **观测度增强**: 控制台实时输出 **“逻辑脉冲” (Logic Pulse)**，直接暴露正反方核心冲突。
+*   **命名空间保护**: 基于目标的相对路径自动生成报告目录（如 `docs/reports/docs/mypath/`），彻底消除同名脚本的报告冲突。
 
 ### 3. Agent 手术机制 (`The Surgeon`)
 该步骤并非机械化的内容覆盖，而是 Agent 在执行前的 **“二次创作规划”**。Agent 以“外科医生”的身份操作：
-*   **深度思索与规划**: 在改写前，Agent 会通盘考虑评审意见对文档全局逻辑的影响，制定优化路线图，确保改写后的内容自洽且流畅。
-*   **分析裁决**: 深度解析评审建议，区分“必须修复”的硬性缺陷与“参考优化”的弹性建议。
-*   **解决冲突**: 若本轮裁决与历史判例冲突，Agent 需进行逻辑抉择并更新 `docs/reports/{TargetFile}/history_summary.md` 中的决策理由，从根源上杜绝逻辑震荡 (Flip-Flop)。
+*   **目标性对齐 (Objective Alignment)**: 在改写前，Agent 会严格对比评审意见与 `# Initial Optimization Objective`，确保迭代过程中不会出现“目标漂移”。
+*   **深度思索与规划**: 制定优化路线图，确保改写后的内容在全局逻辑上自洽且流畅。
+*   **冲突解决与知识固化**: 若裁决与历史判例冲突，Agent 需进行逻辑抉择并更新 `history_summary.md`。该文件不仅记录变动，更作为“持久化记忆”引导下一轮 Council 辩论。
 
 ## 🚥 快速开始
 
@@ -171,15 +176,15 @@ pip install -r requirements.txt
 ```bash
 python3 scripts/dialecta_debate.py {your_document.md} --instruction "你的评审指令"
 ```
-*   **产出位置**: `docs/reports/{FileName}/debate_{timestamp}.md`
+*   **产出位置**: `docs/reports/{Relative_Path}/{TargetFile_Stem}/debate_{timestamp}.md`
 
 ### 3. 自动化持续优化循环 (Automated Loop)
 这是 SparkForge 的**核心能力**。通过 IDE 加载 `.agent/workflows/optimize-design-loop.md`，Agent 将自动执行以下闭环：
-1.  **自动审计**: 调用 `dialecta_debate.py` 生成深度评审意见。
-2.  **安全保护**: 自动在 `docs/backup/{FileName}/` 创建带时间戳的快照。
-3.  **智能重构**: Agent 深度思考评审建议，通过 `multi_replace_file_content` 执行多点精准修复。
-4.  **知识沉淀**: 自动维护 `docs/reports/{FileName}/history_summary.md`（判例法）。
-5.  **自我迭代**: 若评分低于 90，自动进入下一轮评审，直至定稿。
+1.  **自动审计**: 调用 `dialecta_debate.py`，注入**当前目标**与裁剪后的历史背景，生成带元数据追踪的评审意见。
+2.  **原子化保护**: 在 `docs/backup/{FileName}/` 同时备份文档与 `history_summary.md`，支持失败时的全状态恢复。
+3.  **意图追踪 (Action Trace)**: Agent 在修改文档后显式记录“变更影响矩阵”，作为意图证据链引导下一轮评审。
+4.  **知识压缩**: 滚动维护历史摘要，通过 `Legacy Context Summary` 压缩早期冗余信息，维持 Context 高能效。
+5.  **自我迭代**: 若评分达不到 90 或未被 Approved，自动携带上下文进入下一轮。
 
 > **提示**: 在 IDE 中输入 `/optimize-design-loop` 即可快速唤起该工作流。
 

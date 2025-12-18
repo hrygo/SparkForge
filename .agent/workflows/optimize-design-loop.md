@@ -25,58 +25,93 @@ This workflow guides you through the process of refining the design draft using 
 **Before starting**: Check `docs/reports/{TargetFile}/` for recent debate reports.
 
 *   **Task**: Read the most recent 2-3 debate reports for the target file.
-*   **Action**: Create or Update `docs/reports/{TargetFile}/history_summary.md`.
-    *   *Format*: A chronological list of "Verdicts", "Key Decisions", and "Pending Issues".
-    *   *Goal*: This file serves as the "Common Law" (判例法) and context for the next debate cycle.
+*   **Action**: Create or Update `docs/reports/{RelativePath}/{TargetFileStem}/history_summary.md`.
+    *   *Requirement*: You **MUST** capture the **User's Initial Objective** and persistent constraints.
+    *   *Rolling Pruning*: Maintain only the latest **3 loops** in full detail. Older loops must be collapsed into a "Legacy Context Summary" to prevent context noise.
+    *   *Format*: 
+        1.  `# Initial Optimization Objective`: The verbatim initial request.
+        2.  `## Chronological Verdicts`: Recent 3 loops table.
+        3.  `## Persistent Constraints`: Key rules.
+        4.  `## Legacy Context Summary`: Condensed insights from early iterations.
 
 ### Step 2: Convene The Council
 
-Run the debate script which now utilizes `llm` and `prompts` packages for "Configuration as Code".
+Run the debate script. Apply **Precision Cooling** (退火策略): 
+*   If `Loop > 2`, instruct models to prioritize logical consistency.
+*   **Evidence Requirement**: Explicitly instruct the Adjudicator to provide **line citations or specific quotes** for every critique.
 
 ```bash
-# Basic usage with History Context
-# Note: Always pass history_summary.md as the reference if no other spec exists, 
-# or concatenate them if needed.
+# Optimized CLI call using Structured Parameters
+# {RelativePathToDoc} is the path relative to project root
 python3 scripts/dialecta_debate.py {path/to/your_document.md} \
-  --ref docs/reports/{TargetFile}/history_summary.md \
-  --instruction "基于历史判例进行审查，避免重复已解决的问题。"
+  --ref docs/reports/{RelativePathToDoc}/history_summary.md \
+  --instruction "{CurrentOptimizationObjective}" \
+  --loop {CurrentLoopIndex} \
+  --cite
 ```
 
-### Step 3: Verify Consistency (Agent Logic)
+### Step 3: Verify Consistency & Convergence (Agent Logic)
 
-Read the new report (path printed at end of Step 2).
-Compare "Verdict" against `docs/reports/{TargetFile}/history_summary.md`.
+Read the new report. 
 
-*   **Flip-Flop Check**:
-    *   **If FLIP-FLOP DETECTED**: STOP. Inform user.
-    *   **If CONSISTENT**: Proceed.
+1.  **Multi-Criteria Scoring Analysis**: 
+    *   Evaluate the Verdict based on a weighted matrix:
+        *   **Strategic Alignment (40%)**: Does it meet the Initial Objective?
+        *   **Practical Value (30%)**: Are the suggestions actionable?
+        *   **Logical Consistency (30%)**: Does it maintain internal coherence?
+    *   Calculate the **Weighted Score** and its **Delta**.
+
+2.  **Convergence Tracking**: 
+    *   **If Delta < -10 (Negative Delta)**: **STOP & ROLLBACK**. Revert **both** the Target Document and its `history_summary.md` to the previous snapshot from the backup folder.
+    *   **If Delta < 5 for 2 loops**: **STASIS DETECTED**. Flag this in the report and attempt a different tactical approach in Step 5.
+
+3.  **Flip-Flop & Blockage Check**:
+    *   Ensure issues aren't oscillating or persisting (Advice Counter).
 
 ### Step 4: Snapshot Backup (Safety)
 
 **Role**: Ensure roll-back capability before surgical changes.
 
 *   **Action**:
-    1.  Ensure `docs/backup/{TargetFile}/` directory exists.
-    2.  Copy the current **Target Document** (the file being optimized) to this folder.
-    3.  **Naming Convention**: Use the format `{Filename}_backup_{Timestamp}.md`. (e.g., `Strategy_backup_20251218_120000.md`).
+    1.  Ensure `docs/backup/{TargetFileStem}/` directory exists.
+    2.  Copy the current **Target Document** AND its corresponding `history_summary.md` (from `docs/reports/...`) to this folder.
+    3.  **Naming Convention**: 
+        *   Target: `{Filename}_backup_{Timestamp}.md`
+        *   History: `{Filename}_history_backup_{Timestamp}.md`
 
 ### Step 5: The Surgeon (Agent Intelligence - CRITICAL)
 
 **This is the core value add.** This is NOT a mechanical task; it requires deep thinking and strategic planning.
-1.  **Deep Synthesis & Planning**: Do not jump into editing. Reflect on the *Full Verdict* and evaluate how the suggestions impact the document's overall coherence and quality. Plan your edits across the entire document to ensure logical self-consistency.
-2.  **Strategy Formulation**:
-    *   **Prioritize**: Distinguish between "Critical Blockers" and "Stylistic Enhancements".
-    *   **Conflict Resolution**: If a new suggestion contradicts a previous decision tracked in `docs/reports/{TargetFile}/history_summary.md`, perform deep reasoning to determine the superior path. Explicitly document your reasoning to prevent future Flip-Flops.
-3.  **Surgical Execution**: Implement your plan using the `multi_replace_file_content` or `rewrite_file` tool.
-    *   *Guideline*: Be bold. If the Adjudicator identifies a structural weakness, aim for a high-quality reconstruction rather than a minor patch. Ensure the tone remains professional and objective.
+
+1.  **Pre-edit Logical Verification (The Sandbox)**:
+    *   **Existence Guard (Anti-Hallucination)**: Check if the Adjudicator's critiques actually refer to existing text. If a critique refers to a non-existent flaw, discard it and flag it in the Impact Summary.
+    *   **Objective Check**: Ensure the fix doesn't compromise the **Initial Optimization Objective**.
+
+2.  **Standard Mode (Standard Repair)**:
+    *   Reflect on the *Full Verdict* and plan edits across the document.
+
+3.  **Deep Reflection Mode (Escalation/Regression)**:
+    *   **Trigger**: Triggered by Blockage (Count >= 2) or Negative Delta Rollback.
+    *   **Strategy**: Perform a **structural reconstruction**.
+    *   **Self-Correction**: Analyze why previous attempts failed or why the score dropped. Double-check the logic chain.
+
+3.  **Impact Summary (Crucial)**:
+    *   After the edit, generate a concise **"Change Impact Matrix"** (e.g., *Section X: Improved tone to be more strategic; Section Y: Resolved vendor-logic conflict*).
+    *   **Action Trace**: Explicitly state which debate point prompted which change. This summary will guide the Adjudicator in the next round by being appended to the context.
+
+4.  **Conflict Resolution**:
+    *   If a new suggestion contradicts a previous decision or the initial objective, perform deep reasoning to determine the superior path. Increment the "arbitration count" to detect logic loops.
 
 ### Step 6: State Update & Loop Decision (The Driver)
 
-1.  **Update History**: Append the latest result (Draft Version, Score, Key Changes) to `docs/reports/{TargetFile}/history_summary.md`.
+1.  **Update History**: 
+    *   Append the latest result (Version, Score, Delta, Key Changes) to `docs/reports/{RelativePath}/{TargetFileStem}/history_summary.md`.
+    *   **New Section**: Update `## Legacy Context Summary` by condensing the previous version's impact into a one-line **"Version Delta"** to preserve evolution context without bloating history.
+    *   **Action Trace**: Ensure the "Change Impact Matrix" from Step 5 is archived here.
 2.  **Check Exit Conditions**:
-    *   **Condition A (Success)**: Adjudicator Score >= 90 AND Verdict == "Approved". -> **STOP**.
+    *   **Condition A (Success)**: Score >= 90 AND Verdict == "Approved". -> **STOP**.
     *   **Condition B (Timeout)**: `Current_Loop` >= `max_loops`. -> **STOP**.
-    *   **Condition C (Anomaly)**: **Flip-Flop Detected** (The same issue is oscillating between two states across 3+ runs). -> **STOP** and ask User for arbitration.
+    *   **Condition C (Anomaly)**: **Flip-Flop** or **Persistent Stasis** detected. -> **STOP** and ask User.
 3.  **The Next Move**:
-    *   **IF NO EXIT CONDITION MET**: **IMMEDIATELY** trigger Step 2 again. (Self-Correction Loop).
-    *   *Agent Directive*: You are authorized to proceed to the next loop automatically if within limits.
+    *   **IF NO EXIT CONDITION MET**: Trigger Step 2.
+    *   *Agent Directive*: You are authorized to proceed automatically. Carry the Initial Objective.
