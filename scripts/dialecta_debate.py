@@ -8,6 +8,7 @@ import threading
 import itertools
 from pathlib import Path
 from datetime import datetime
+import concurrent.futures
 
 # Adjust path to include project root for imports
 current_dir = Path(__file__).parent
@@ -107,6 +108,15 @@ def format_usage(usage):
         return "N/A"
     return f"In:{usage.prompt_tokens} Out:{usage.completion_tokens} Total:{usage.total_tokens}"
 
+def extract_one_liner(content: str) -> str:
+    """Extracts the first one-liner found in markdown headers like ## 💡 One-Liner."""
+    import re
+    # Look for ## 💡 One-Liner followed by any text until next header or end
+    match = re.search(r"##\s*💡\s*One-Liner\s*\n+(.*?)(?=\n+##|$)", content, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    return ""
+
 def run_debate(target_file: str, reference_file: str = "", instruction: str = ""):
     # Initialize infrastructure
     log_dir = project_root / "logs"
@@ -136,51 +146,56 @@ def run_debate(target_file: str, reference_file: str = "", instruction: str = ""
     
     user_input = "\n\n".join(context_blocks)
     
-    # 1. Affirmative Phase
-    phase_start = time.time()
-    provider = AffirmativeConfig.get('provider')
-    model = AffirmativeConfig.get('model')
-    logger.info(f"\n{Colors.BLUE}🚀 [Affirmative]{Colors.ENDC} Engaging {provider} ({model})...")
-    
-    try:
-        with ThinkingSpinner(f"generating affirmative arguments via {model}..."):
-            affirmative_resp = client.chat(
-                messages=[
-                    {"role": "system", "content": AffirmativePrompt},
-                    {"role": "user", "content": user_input}
-                ],
-                **AffirmativeConfig
-            )
-        usage_stats["affirmative"] = affirmative_resp.usage
-        logger.info(f"{Colors.GREEN}✅ Affirmative generated.{Colors.ENDC} ({format_usage(affirmative_resp.usage)})")
-        logger.debug(f"Affirmative Content:\n{affirmative_resp.content[:500]}...")
-    except Exception as e:
-        logger.error(f"{Colors.RED}💥 Affirmative Phase Failed: {e}{Colors.ENDC}", exc_info=True)
-        return
-    time_stats["affirmative"] = time.time() - phase_start
+    # Define parallel execution helper
+    def call_phase(role_name, prompt, config):
+        p_start = time.time()
+        provider = config.get('provider')
+        model = config.get('model')
+        logger.info(f"🚀 [{role_name}] Engaging {provider} ({model})...")
+        
+        res = client.chat(
+            messages=[
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": user_input}
+            ],
+            **config
+        )
+        p_duration = time.time() - p_start
+        return res, p_duration
 
-    # 2. Negative Phase
-    phase_start = time.time()
-    provider = NegativeConfig.get('provider')
-    model = NegativeConfig.get('model')
-    logger.info(f"{Colors.YELLOW}🛡️  [Negative]{Colors.ENDC} Engaging {provider} ({model})...")
+    # 1 & 2. Parallel Affirmative and Negative Phase
+    logger.info(f"\n{Colors.CYAN}🔥 [Parallel Phase] Generating Affirmative & Negative arguments...{Colors.ENDC}")
     
-    try:
-        with ThinkingSpinner(f"generating negative arguments via {model}..."):
-            negative_resp = client.chat(
-                messages=[
-                    {"role": "system", "content": NegativePrompt},
-                    {"role": "user", "content": user_input}
-                ],
-                **NegativeConfig
-            )
-        usage_stats["negative"] = negative_resp.usage
-        logger.info(f"{Colors.GREEN}✅ Negative generated.{Colors.ENDC} ({format_usage(negative_resp.usage)})")
-        logger.debug(f"Negative Content:\n{negative_resp.content[:500]}...")
-    except Exception as e:
-        logger.error(f"{Colors.RED}💥 Negative Phase Failed: {e}{Colors.ENDC}", exc_info=True)
-        return
-    time_stats["negative"] = time.time() - phase_start
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        with ThinkingSpinner("Both sides are preparing their arguments...\n\n", delay=1.0):
+            future_aff = executor.submit(call_phase, "Affirmative", AffirmativePrompt, AffirmativeConfig)
+            future_neg = executor.submit(call_phase, "Negative", NegativePrompt, NegativeConfig)
+            
+            # Collect Affirmative
+            try:
+                affirmative_resp, time_stats["affirmative"] = future_aff.result()
+                usage_stats["affirmative"] = affirmative_resp.usage
+                one_liner = extract_one_liner(affirmative_resp.content)
+                logger.info(f"{Colors.GREEN}✅ Affirmative generated.{Colors.ENDC} ({format_usage(affirmative_resp.usage)})")
+                if one_liner:
+                    logger.info(f"{Colors.CYAN}📢 One-Liner: {Colors.ENDC}{one_liner}\n")
+                logger.debug(f"Affirmative Content:\n{affirmative_resp.content[:500]}...")
+            except Exception as e:
+                logger.error(f"{Colors.RED}💥 Affirmative Phase Failed: {e}{Colors.ENDC}", exc_info=True)
+                return
+
+            # Collect Negative
+            try:
+                negative_resp, time_stats["negative"] = future_neg.result()
+                usage_stats["negative"] = negative_resp.usage
+                one_liner = extract_one_liner(negative_resp.content)
+                logger.info(f"{Colors.GREEN}✅ Negative generated.{Colors.ENDC} ({format_usage(negative_resp.usage)})")
+                if one_liner:
+                    logger.info(f"{Colors.CYAN}📢 One-Liner: {Colors.ENDC}{one_liner}\n")
+                logger.debug(f"Negative Content:\n{negative_resp.content[:500]}...")
+            except Exception as e:
+                logger.error(f"{Colors.RED}💥 Negative Phase Failed: {e}{Colors.ENDC}", exc_info=True)
+                return
 
     # 3. Adjudicator Phase
     phase_start = time.time()
@@ -208,7 +223,10 @@ def run_debate(target_file: str, reference_file: str = "", instruction: str = ""
                 **AdjudicatorConfig
             )
         usage_stats["adjudicator"] = adjudicator_resp.usage
+        one_liner = extract_one_liner(adjudicator_resp.content)
         logger.info(f"{Colors.GREEN}✅ Verdict reached.{Colors.ENDC} ({format_usage(adjudicator_resp.usage)})")
+        if one_liner:
+            logger.info(f"{Colors.YELLOW}⚖️  One-Liner: {Colors.ENDC}{one_liner}\n")
         logger.debug(f"Adjudicator Content:\n{adjudicator_resp.content[:500]}...")
     except Exception as e:
         logger.error(f"{Colors.RED}💥 Adjudicator Phase Failed: {e}{Colors.ENDC}", exc_info=True)
