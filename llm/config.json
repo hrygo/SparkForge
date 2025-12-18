@@ -1,0 +1,59 @@
+{
+    "provider": {
+        "default": "gemini"
+    },
+    "openai": {
+        "model": "gpt-5-mini",
+        "api_key": "${OPENAI_API_KEY}",
+        "base_url": "https://api.openai.com/v1",
+        "temperature": 0.7,
+        "max_tokens": 8192,
+        "feature": "OpenAI 最新高性价比模型，速度极快，成本仅为旗舰版的 1/14。",
+        "tasks": "高频日常对话、简单代码辅助、大批量数据处理。"
+    },
+    "deepseek": {
+        "model": "deepseek-chat",
+        "api_key": "${DEEPSEEK_API_KEY}",
+        "base_url": "https://api.deepseek.com",
+        "temperature": 0.7,
+        "max_tokens": 8192,
+        "feature": "国产开源巅峰，数学与代码逻辑能力极强，思维严密。",
+        "tasks": "复杂算法实现、Bug 修复、数学推导、逻辑查漏补缺。"
+    },
+    "gemini": {
+        "model": "gemini-3.0-pro-preview",
+        "api_key": "${GEMINI_API_KEY}",
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+        "temperature": 0.7,
+        "max_tokens": 8192,
+        "feature": "Google 新一代旗舰，拥有极长上下文和顶级多模态理解力。",
+        "tasks": "超长文档分析、多语言翻译、跨学科知识推理。"
+    },
+    "dashscope": {
+        "model": "qwen-plus",
+        "api_key": "${DASHSCOPE_API_KEY}",
+        "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        "temperature": 0.7,
+        "max_tokens": 8192,
+        "feature": "阿里通义千问增强版，中文语义理解与文化底蕴深厚。",
+        "tasks": "中文公文写作、RAG 知识库问答、中国文化相关生成。"
+    },
+    "openrouter": {
+        "model": "x-ai/grok-4",
+        "api_key": "${OPENROUTER_API_KEY}",
+        "base_url": "https://openrouter.ai/api/v1",
+        "temperature": 0.7,
+        "max_tokens": 8192,
+        "feature": "xAI 最新强推理模型，风格犀利，具有 256k 上下文。",
+        "tasks": "创意发散、寻找反直觉观点、非受限话题讨论。"
+    },
+    "siliconflow": {
+        "model": "zai-org/GLM-4.6",
+        "api_key": "${SILICONFLOW_API_KEY}",
+        "base_url": "https://api.siliconflow.cn/v1",
+        "temperature": 0.7,
+        "max_tokens": 8192,
+        "feature": "智谱 AI 年度旗舰，具备 System 2 慢思考与超强 Agent 编排力。",
+        "tasks": "复杂 Agent 执行、多步工具调用、深度逻辑分析。"
+    }
+}

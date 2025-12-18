@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <!-- Theme CSS -->
+    <link rel="stylesheet" href="{{ theme_css_path }}">
+    <style>
+        /* Fallback / Critical CSS if needed */
+    </style>
+    
+    <!-- Mermaid JS -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'base',
+            themeVariables: {
+                'primaryColor': '#e0f2fe',
+                'primaryTextColor': '#0073e5',
+                'primaryBorderColor': '#00bfff',
+                'lineColor': '#0073e5',
+                'secondaryColor': '#ffedd5',
+                'tertiaryColor': '#fff'
+            },
+            securityLevel: 'loose'
+        });
+    </script>
+</head>
+<body class="{{ body_class }}">
+    <div id="poster-content">
+        {{ content }}
+    </div>
+</body>
+</html>
