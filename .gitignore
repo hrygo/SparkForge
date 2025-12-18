@@ -13,10 +13,6 @@ ENV/
 # OS
 .DS_Store
 
-# Reports & Backups (Dynamic Data)
-docs/reports/
-docs/backup/
-
 # Node modules
 node_modules/
 scripts/pdf_tool/node_modules/
