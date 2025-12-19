@@ -14,6 +14,7 @@ def main():
     parser.add_argument("--theme", default="council_poster.css", help="Theme CSS file name (in themes/ dir)")
     parser.add_argument("--width", default="210mm", help="PDF Width (e.g. 210mm, 1200px)")
     parser.add_argument("--glass-cards", action="store_true", help="Enable Glass Card layout wrapping")
+    parser.add_argument("--a4", action="store_true", help="Use standard A4 pagination instead of long scroll")
     
     args = parser.parse_args()
     
@@ -73,11 +74,17 @@ def main():
         print(f"Warning: Theme not found: {theme_path}, falling back to council_poster.css")
         theme_path = os.path.join(script_dir, 'themes', 'council_poster.css')
         
+    body_classes = []
+    if args.glass_cards:
+        body_classes.append("glass-theme")
+    if args.a4:
+        body_classes.append("paginated-mode")
+        
     final_html = template.render(
         title=os.path.basename(md_path),
         content=html_body,
         theme_css_path='file://' + theme_path,
-        body_class="glass-theme" if args.glass_cards else ""
+        body_class=" ".join(body_classes)
     )
     
     with open(html_path, 'w', encoding='utf-8') as f:
@@ -87,10 +94,14 @@ def main():
     
     # 5. Call Node Renderer
     renderer_script = os.path.join(script_dir, 'renderer.js')
-    print(f"🚀 Rendering PDF ({args.width})...")
+    print(f"🚀 Rendering PDF ({'A4 Pagination' if args.a4 else args.width})...")
     
+    cmd = ['node', renderer_script, html_path, pdf_path, args.width]
+    if args.a4:
+        cmd.append('--a4')
+
     try:
-        subprocess.run(['node', renderer_script, html_path, pdf_path, args.width], check=True)
+        subprocess.run(cmd, check=True)
         print(f"🎉 PDF Generated Successfully: {pdf_path}")
     except subprocess.CalledProcessError:
         print("❌ PDF Rendering Failed.")

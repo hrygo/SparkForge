@@ -21,7 +21,7 @@
         "tasks": "复杂算法实现、Bug 修复、数学推导、逻辑查漏补缺。"
     },
     "gemini": {
-        "model": "gemini-3.0-pro-preview",
+        "model": "gemini-3-pro-preview",
         "api_key": "${GEMINI_API_KEY}",
         "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
         "temperature": 0.7,

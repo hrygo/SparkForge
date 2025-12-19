@@ -23,3 +23,6 @@ scripts/pdf_tool/node_modules/
 # Generated backups and reports
 docs/backup/*
 docs/reports/*
+
+# Strategy Documents
+**AI_Training_Strategy*

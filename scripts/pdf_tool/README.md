@@ -34,6 +34,16 @@ Run the converter from the project root:
 python3 scripts/pdf_tool/converter.py <INPUT_FILE> [OPTIONS]
 ```
 
+### ⌨️ Quick Start with Makefile
+For convenience, a `Makefile` is provided in the **project root** to quickly generate common formats:
+
+```bash
+make a4 docs/your-file.md      # Official A4 Report (Business)
+make poster docs/your-file.md  # Professional Long-Scroll (Business)
+make glass docs/your-file.md   # Glass-Style A4 Report (Council)
+make mobile docs/your-file.md  # Mobile-Optimized Poster (Council)
+```
+
 ### Examples
 
 **1. Generate a Standard A4 Product Poster (Default)**
@@ -68,5 +78,6 @@ python3 scripts/pdf_tool/converter.py docs/TDD.md
 
 Themes are located in `scripts/pdf_tool/themes/`.
 *   **`council_poster.css`**: The default Flat-Glass style, optimized for mobile performance and clean aesthetics.
+*   **`business_formal.css`**: (New) A professional, high-authority theme designed for official reports and executive summaries. Uses deep navy accents and sharp typography.
 
 To add a new theme, simply create a `.css` file in the `themes/` directory and reference it via `--theme your_theme.css`.

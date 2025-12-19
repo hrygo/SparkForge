@@ -12,7 +12,8 @@ if (args.length < 2) {
 
 const inputPath = args[0];
 const outputPath = args[1];
-const width = args[2] || '210mm'; // Default to A4 width
+const width = args[2] || '210mm';
+const isA4 = args.includes('--a4');
 
 (async () => {
     try {
@@ -30,24 +31,32 @@ const width = args[2] || '210mm'; // Default to A4 width
 
         // Wait for mermaid diagrams if they exist
         try {
-            await page.waitForSelector('.mermaid svg', { timeout: 5000 });
+            await page.waitForSelector('.mermaid svg', { timeout: 10000 });
             console.log('Mermaid diagrams rendered.');
         } catch (e) {
             console.log('No Mermaid diagrams found or timed out. Proceeding...');
         }
 
-        // Calculate flexible height
-        const bodyHeight = await page.evaluate(() => document.body.scrollHeight + 50);
-        console.log(`Generating PDF: ${width} x ${bodyHeight}px`);
-
-        await page.pdf({
+        const pdfOptions = {
             path: outputPath,
-            width: width,
-            height: `${bodyHeight}px`,
             printBackground: true,
             displayHeaderFooter: false,
-            margin: { top: '0', right: '0', bottom: '0', left: '0' }
-        });
+        };
+
+        if (isA4) {
+            console.log("Mode: Standard A4 Pagination");
+            pdfOptions.format = 'A4';
+            pdfOptions.margin = { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' };
+        } else {
+            // Calculate flexible height
+            const bodyHeight = await page.evaluate(() => document.body.scrollHeight + 50);
+            console.log(`Mode: Long Scroll (${width} x ${bodyHeight}px)`);
+            pdfOptions.width = width;
+            pdfOptions.height = `${bodyHeight}px`;
+            pdfOptions.margin = { top: '0', right: '0', bottom: '0', left: '0' };
+        }
+
+        await page.pdf(pdfOptions);
 
         await browser.close();
         console.log(`PDF saved to: ${outputPath}`);

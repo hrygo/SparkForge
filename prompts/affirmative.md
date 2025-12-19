@@ -1,7 +1,7 @@
 ---
 model_config:
   provider: gemini
-  model: gemini-3.0-pro-preview
+  model: gemini-3-pro-preview
   temperature: 0.9
   max_tokens: 8192
   top_p: 0.95
