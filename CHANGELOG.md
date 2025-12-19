@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1] - 2025-12-19
+
+### Changed
+
+- **Makefile 逻辑解耦**: 将 PDF 签名由自动触发改为手动执行 (`make sign`)，确保签名操作在人工审计后进行。
+- **CLI 交互优化**: 更新了 `make help` 的指令说明与示例，提升了 PDF/Security 模块的易用性。
+
+### Fixed
+
+- **文档补充**: 在 README.md 中增加了 `phantom-guard` 工具的安装引导及 GitHub 获取地址。
+- **安装指导**: 明确了签名工具为可选组件，避免非必要安装。
+
 ## [1.0.0] - 2025-12-19
 
 ### Added

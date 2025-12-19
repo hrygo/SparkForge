@@ -1,6 +1,6 @@
 # ⚡ SparkForge 2.0: AI 原生决策与执行规划引擎
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.0.1-blue)
 
 > **使命 (Mission)**: 通过对抗式 AI (Adversarial AI) 与外科手术级精度，将挥发的原始创意锻造成工业级的执行方案。
 
@@ -165,6 +165,10 @@ sequenceDiagram
 ```bash
 # 安装依赖
 pip install -r requirements.txt
+
+# 安装 PDF 签名工具 (PhantomGuard)（可选，仅需生成pdf签名时安装）
+# 获取地址: https://github.com/hrygo/phantom-stream
+# 按仓库说明完成编译与全局安装
 
 # 在 .env 中配置 API Key
 # GEMINI_API_KEY=your_key
