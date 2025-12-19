@@ -2,9 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0] - 2025-12-19
+## [1.0.0] - 2025-12-19
 
 ### Added
+
+- **安全审计与签名 (PhantomGuard)**: Makefile 集成 PDF 自动安全签名机制，支持自定义追踪信息。
+- **现代化 CLI 界面**: 重构 Makefile，支持带颜色的分组指令与更友好的示例引导。
 
 - **SparkForge-3 协议**: Expansion, Validation, Action 的工业级文档演进流程。
 - **The Council (AI 理事会)**: 基于多模型对抗的文档语义审计系统。

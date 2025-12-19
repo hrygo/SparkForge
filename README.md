@@ -1,6 +1,6 @@
 # ⚡ SparkForge 2.0: AI 原生决策与执行规划引擎
 
-![Version](https://img.shields.io/badge/version-1.0-blue)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
 
 > **使命 (Mission)**: 通过对抗式 AI (Adversarial AI) 与外科手术级精度，将挥发的原始创意锻造成工业级的执行方案。
 
