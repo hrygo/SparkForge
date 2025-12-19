@@ -19,3 +19,7 @@ scripts/pdf_tool/node_modules/
 
 # Logs
 *.log
+
+# Generated backups and reports
+docs/backup/*
+docs/reports/*

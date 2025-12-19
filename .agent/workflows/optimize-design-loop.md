@@ -25,7 +25,8 @@ This workflow guides you through the process of refining the design draft using 
 **Before starting**: Check `docs/reports/{TargetFile}/` for recent debate reports.
 
 *   **Task**: Read the most recent 2-3 debate reports for the target file.
-*   **Action**: Create or Update `docs/reports/{RelativePath}/{TargetFileStem}/history_summary.md`.
+*   **Action**: Create or Update `docs/reports/{EffectiveRelativePath}/{TargetFileStem}/history_summary.md`.
+    *   *Path Rule*: If the target file is in `docs/` (e.g., `docs/MyFile.md`), `{EffectiveRelativePath}` is empty (i.e., `docs/reports/MyFile/`). If in `src/utils/`, it remains `src/utils`. This prevents `docs/reports/docs/...`.
     *   *Requirement*: You **MUST** capture the **User's Initial Objective** and persistent constraints.
     *   *Rolling Pruning*: Maintain only the latest **3 loops** in full detail. Older loops must be collapsed into a "Legacy Context Summary" to prevent context noise.
     *   *Format*: 
@@ -42,9 +43,9 @@ Run the debate script. Apply **Precision Cooling** (退火策略):
 
 ```bash
 # Optimized CLI call using Structured Parameters
-# {RelativePathToDoc} is the path relative to project root
+# {EffectiveRelativePath} follows the Path Rule defined in Step 1
 python3 scripts/dialecta_debate.py {path/to/your_document.md} \
-  --ref docs/reports/{RelativePathToDoc}/history_summary.md \
+  --ref docs/reports/{EffectiveRelativePath}/{TargetFileStem}/history_summary.md \
   --instruction "{CurrentOptimizationObjective}" \
   --loop {CurrentLoopIndex} \
   --cite

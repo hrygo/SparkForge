@@ -296,6 +296,9 @@ def run_debate(target_file: str, reference_file: str = "", instruction: str = ""
         rel_from_root = target_p.relative_to(project_root)
         # remove the filename from tail to get parent structure
         rel_dir = rel_from_root.parent
+        # Remove redundant 'docs' prefix if present to avoid docs/reports/docs/...
+        if rel_dir.parts and rel_dir.parts[0] == 'docs':
+             rel_dir = Path(*rel_dir.parts[1:])
     except ValueError:
         # Fallback for files outside project root
         rel_dir = Path("external")
