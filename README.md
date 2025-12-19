@@ -43,11 +43,12 @@ SparkForge 的设计哲学是“层级解耦，逻辑内聚”。其架构不仅
 ```mermaid
 flowchart TB
     %% Configuration & Global Styles
-    classDef layerBox fill:#fcfcfc,stroke:#e1e4e8,stroke-width:1px,stroke-dasharray: 5 5;
-    classDef coreNode fill:#ffffff,stroke:#1a1a1a,stroke-width:2px;
+    %% Using theme-aware or neutral colors to support both light and dark modes
+    classDef layerBox fill:none,stroke:#7c3aed,stroke-width:1px,stroke-dasharray: 5 5;
+    classDef coreNode fill:#f8fafc,stroke:#1e293b,stroke-width:2px,color:#0f172a;
+    classDef darkNode fill:#0f172a,color:#ffffff,stroke-width:0px;
     classDef agentNode fill:#7c3aed,color:#ffffff,stroke-width:0px;
-    classDef scriptNode fill:#0f172a,color:#ffffff,stroke-width:0px;
-    classDef modelNode fill:#f0fdf4,stroke:#22c55e,stroke-width:1px;
+    classDef modelNode fill:#f0fdf4,stroke:#22c55e,stroke-width:1px,color:#166534;
 
     %% 1. Orchestration Layer
     subgraph L1 [Top Layer: 编排与指控层]
@@ -89,7 +90,7 @@ flowchart TB
     class L1,L2,L3 layerBox;
     class W,Aff,Neg,Adj coreNode;
     class S agentNode;
-    class P scriptNode;
+    class P darkNode;
     class M1,M2,M3 modelNode;
 ```
 
@@ -112,6 +113,7 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
+    %% Use subtle accents instead of heavy background blocks
     participant S as "外科医生 Agent"
     participant L as ".agent/工作流"
     participant D as "辩论脚本"
@@ -119,33 +121,27 @@ sequenceDiagram
     participant T as "源文件资产"
 
     Note over S, T: 🟢 PHASE 1: 认知准备与历史归档
-    rect rgb(252, 252, 252)
-        S->>L: 滚动历史裁剪 (Pruning)
-        L->>L: 更新认知补丁 (history_summary.md)
-    end
+    S->>L: 滚动历史裁剪 (Pruning)
+    L->>L: 更新认知补丁 (history_summary.md)
 
     Note over S, T: 🔴 PHASE 2: 对抗博弈与真实性审计
-    rect rgb(248, 250, 252)
-        L->>D: 激活 Council (args: --cite --loop)
-        par [认知并发流]
-            D->>C: 正方 (Defense)
-            D->>C: 反方 (Risk Audit)
-        end
-        C-->>D: 线条级引文裁决
-        D->>D: 幻觉审计 (Line Audit)
-        D-->>L: 向编排器回传“逻辑脉冲”
+    L->>D: 激活 Council (args: --cite --loop)
+    par [认知并发流]
+        D->>C: 正方 (Defense)
+        D->>C: 反方 (Risk Audit)
     end
+    C-->>D: 线条级引文裁决
+    D->>D: 幻觉审计 (Line Audit)
+    D-->>L: 向编排器回传“逻辑脉冲”
 
     Note over S, T: 🔵 PHASE 3: 原子化演进与安全回滚
-    rect rgb(240, 253, 244)
-        L->>S: 评估分值增量 (Quality Delta)
-        alt 分值骤降 (Delta < -10)
-            S->>T: 触发原子化回滚 (Snapshot Recovery)
-        else 价值确认
-            S->>S: 预检审计 (Existence Guard)
-            S->>T: 手术级改写 (Surgical Edit)
-            S->>L: 固化变更矩阵 (Action Trace)
-        end
+    L->>S: 评估分值增量 (Quality Delta)
+    alt 分值骤降 (Delta < -10)
+        S->>T: 触发原子化回滚 (Snapshot Recovery)
+    else 价值确认
+        S->>S: 预检审计 (Existence Guard)
+        S->>T: 手术级改写 (Surgical Edit)
+        S->>L: 固化变更矩阵 (Action Trace)
     end
     Note over S, T: 🔄 循环往复，直至文档生命力评分 >= 90
 ```
