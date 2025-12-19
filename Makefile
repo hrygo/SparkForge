@@ -1,76 +1,93 @@
-# 📄 SparkForge PDF Tool Makefile
-# Supports positional arguments for better UX: make <target> <file.md>
+# 📄 SparkForge Industrial-Grade Makefile
+# Usage: make <target> <file> [optional_param]
 
+# --- Configuration ---
 PYTHON = /opt/anaconda3/bin/python3
 CONVERTER = scripts/pdf_tool/converter.py
+DEBATE_SCRIPT = scripts/dialecta_debate.py
 
-# Capture arguments
+# --- Positional Arguments Capture ---
+# MD: The primary file (Markdown or PDF)
+# ARG: The secondary parameter (Instruction for debate or Message for sign)
 MD = $(word 2,$(MAKECMDGOALS))
-INS = $(word 3,$(MAKECMDGOALS))
+ARG = $(word 3,$(MAKECMDGOALS))
 
-# Default Target
+# --- Colors ---
+BLUE   = \033[34m
+CYAN   = \033[36m
+GREEN  = \033[32m
+YELLOW = \033[33m
+RESET  = \033[0m
+BOLD   = \033[1m
+
 .PHONY: help
 help:
-	@echo "🔍 PDF Generation (Positional Args):"
-	@echo "  make a4 <file.md>       - Formal A4 Report (Business Style)"
-	@echo "  make poster <file.md>   - Professional Long-Scroll (210mm)"
-	@echo "  make glass <file.md>    - Glass-Style A4 Report (Council Style)"
-	@echo "  make mobile <file.md>   - Mobile High-Impact Poster (500px)"
+	@echo "$(BOLD)⚡ SparkForge 2.0 CLI Interface$(RESET)"
+	@echo "------------------------------------------------------------------"
+	@echo "$(CYAN)[1. PDF GENERATION]$(RESET)"
+	@echo "  $(GREEN)make a4$(RESET) <file.md> [sign_msg]   - Business Formal A4 Report (Auto-Signed)"
+	@echo "  $(GREEN)make glass$(RESET) <file.md> [sign_msg]- Glass-Style A4 Report (Auto-Signed)"
+	@echo "  $(GREEN)make poster$(RESET) <file.md>          - Professional Long-Scroll (210mm)"
+	@echo "  $(GREEN)make mobile$(RESET) <file.md>          - Mobile High-Impact Poster (500px)"
 	@echo ""
-	@echo "🧠 AI Content Audit:"
-	@echo "  make debate <file.md> [instruction] - Run Dialecta Debate for optimization"
+	@echo "$(CYAN)[2. AI CONTENT AUDIT]$(RESET)"
+	@echo "  $(GREEN)make debate$(RESET) <file.md> [prompt] - Run Dialecta Council Debate for optimization"
 	@echo ""
-	@echo "💡 Example: make a4 docs/report.md"
-	@echo "💡 Example: make debate docs/plan.md \"优化采购指标的专业性\""
+	@echo "$(CYAN)[3. QUALITY CONTROL]$(RESET)"
+	@echo "  $(GREEN)make lint$(RESET) [file.md]           - Check markdown syntax & rules"
+	@echo "  $(GREEN)make fix$(RESET) [file.md]            - Auto-fix markdown formatting errors"
 	@echo ""
-	@echo "🧹 Quality Control:"
-	@echo "  make lint [file.md]     - Check markdown syntax"
-	@echo "  make fix [file.md]      - Auto-fix markdown formatting"
+	@echo "$(CYAN)[4. SECURITY & SIGNING]$(RESET)"
+	@echo "  $(GREEN)make sign$(RESET) <file.pdf> [msg]     - Manually sign PDF with PhantomGuard"
+	@echo "------------------------------------------------------------------"
+	@echo "$(YELLOW)💡 EXAMPLES:$(RESET)"
+	@echo "  $(BLUE)»$(RESET) make a4 docs/plan.md \"Internal Only\""
+	@echo "  $(BLUE)»$(RESET) make debate docs/strategy.md \"Enhance professional tone\""
+	@echo "  $(BLUE)»$(RESET) make fix docs/AI_Training_Strategy_ALM.md"
+	@echo "------------------------------------------------------------------"
 
 # -----------------------------------------------------------------------------
-# Business Formal Style
+# 1. PDF Generation (Business & Council Styles)
 # -----------------------------------------------------------------------------
 
 .PHONY: a4
 a4: check-md
-	@echo "🚀 Generating Business A4 Report: $(MD)"
+	@echo "🚀 Rendering Business A4: $(MD)"
 	@$(PYTHON) $(CONVERTER) $(MD) --theme business_formal.css --a4
+	@$(MAKE) sign MD=$(basename $(MD)).pdf ARG="$(ARG)"
+
+.PHONY: glass
+glass: check-md
+	@echo "🚀 Rendering Glass A4: $(MD)"
+	@$(PYTHON) $(CONVERTER) $(MD) --theme council_poster.css --a4 --glass-cards
+	@$(MAKE) sign MD=$(basename $(MD)).pdf ARG="$(ARG)"
 
 .PHONY: poster
 poster: check-md
-	@echo "🚀 Generating Business Long-Scroll: $(MD)"
+	@echo "🚀 Rendering Long-Scroll: $(MD)"
 	@$(PYTHON) $(CONVERTER) $(MD) --theme business_formal.css --width 210mm
 
+.PHONY: mobile
+mobile: check-md
+	@echo "🚀 Rendering Mobile Poster: $(MD)"
+	@$(PYTHON) $(CONVERTER) $(MD) --theme council_poster.css --width 500px --glass-cards
+
 # -----------------------------------------------------------------------------
-# AI Content Audit Target
+# 2. AI Content Audit (The Council)
 # -----------------------------------------------------------------------------
 
 .PHONY: debate
 debate: check-md
-	@echo "🧠 Starting Dialecta Debate: $(MD)"
-	@$(PYTHON) scripts/dialecta_debate.py $(MD) --instruction "$(if $(INS),$(INS),优化并精炼文档内容，增强专业感)" --cite
+	@echo "🧠 Engaging The Council for: $(MD)"
+	@$(PYTHON) $(DEBATE_SCRIPT) $(MD) --instruction "$(if $(ARG),$(ARG),优化并精炼文档内容，增强专业感)" --cite
 
 # -----------------------------------------------------------------------------
-# Council Poster (Glass) Style
-# -----------------------------------------------------------------------------
-
-.PHONY: glass
-glass: check-md
-	@echo "🚀 Generating Glass A4 Report: $(MD)"
-	@$(PYTHON) $(CONVERTER) $(MD) --theme council_poster.css --a4 --glass-cards
-
-.PHONY: mobile
-mobile: check-md
-	@echo "🚀 Generating Mobile Poster: $(MD)"
-	@$(PYTHON) $(CONVERTER) $(MD) --theme council_poster.css --width 500px --glass-cards
-
-# -----------------------------------------------------------------------------
-# Quality Control
+# 3. Quality Control (Linting & Formatting)
 # -----------------------------------------------------------------------------
 
 .PHONY: lint
 lint:
-	@echo "🔍 Linting Markdown..."
+	@echo "🔍 Linting Markdown assets..."
 	@if [ -z "$(MD)" ]; then \
 		markdownlint "**/*.md" --ignore "**/node_modules/**" --ignore "docs/reports/**" --ignore "docs/backup/**"; \
 	else \
@@ -79,7 +96,7 @@ lint:
 
 .PHONY: fix
 fix:
-	@echo "🛠️  Fixing Markdown..."
+	@echo "🛠️  Auto-fixing Markdown formatting..."
 	@if [ -z "$(MD)" ]; then \
 		prettier --write "**/*.md" --ignore-path .gitignore; \
 		markdownlint --fix "**/*.md" --ignore "**/node_modules/**" --ignore "docs/reports/**" --ignore "docs/backup/**"; \
@@ -89,20 +106,29 @@ fix:
 	fi
 
 # -----------------------------------------------------------------------------
-# Utility
+# 4. Security & Signing (PhantomGuard)
+# -----------------------------------------------------------------------------
+
+.PHONY: sign
+sign:
+	@echo "🔐 Applying PhantomGuard Signature: $(MD)"
+	@phantom-guard sign -f "$(MD)" -m "$(if $(ARG),$(ARG),SparkForge_Industrial_Grade_$(shell date +%Y%m%d))"
+
+# -----------------------------------------------------------------------------
+# Utility & Infrastructure
 # -----------------------------------------------------------------------------
 
 .PHONY: check-md
 check-md:
 	@if [ -z "$(MD)" ]; then \
-		echo "❌ Error: Missing input file. Usage: make <target> <file.md>"; \
+		echo "$(BOLD)$(RED)❌ Error: Missing input file.$(RESET) Usage: make <target> <file>"; \
 		exit 1; \
 	fi
 	@if [ ! -f "$(MD)" ]; then \
-		echo "❌ Error: File '$(MD)' not found."; \
+		echo "$(BOLD)$(RED)❌ Error: File '$(MD)' not found.$(RESET)"; \
 		exit 1; \
 	fi
 
-# Trick to allow positional arguments without make complaining about "No rule to make target..."
+# Positional argument magic
 %:
 	@:
