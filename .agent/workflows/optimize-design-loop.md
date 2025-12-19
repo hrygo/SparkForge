@@ -94,7 +94,7 @@ Read the new report.
     *   **Objective Check**: Ensure the fix doesn't compromise the **Initial Optimization Objective**.
 
 2.  **Standard Mode (Standard Repair)**:
-    *   Reflect on the *Full Verdict* and plan edits across the document.
+    *   Reflect on the **裁决详情 (Detailed Verdict)** and plan edits across the document.
 
 3.  **Deep Reflection Mode (Escalation/Regression)**:
     *   **Trigger**: Triggered by Blockage (Count >= 2) or Negative Delta Rollback.
@@ -115,7 +115,7 @@ Read the new report.
     *   **New Section**: Update `## Legacy Context Summary` by condensing the previous version's impact into a one-line **"Version Delta"** to preserve evolution context without bloating history.
     *   **Action Trace**: Ensure the "Change Impact Matrix" from Step 5 is archived here.
 2.  **Check Exit Conditions**:
-    *   **Condition A (Success)**: Score >= 90 AND Verdict == "Approved". -> **STOP**.
+    *   **Condition A (Success)**: Score >= 90 AND Verdict matches "Approved" or "直接通过". -> **STOP**.
     *   **Condition B (Timeout)**: `Current_Loop` >= `max_loops`. -> **STOP**.
     *   **Condition C (Anomaly)**: **Flip-Flop** or **Persistent Stasis** detected. -> **STOP** and ask User.
 3.  **The Next Move**:

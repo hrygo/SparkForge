@@ -113,17 +113,30 @@ def read_file(path: str, logger: logging.Logger) -> str:
         logger.error(f"Error reading {path}: {e}")
         return ""
 
+def prepend_line_numbers(text: str) -> str:
+    lines = text.splitlines()
+    # Format: "  1 | content"
+    width = len(str(len(lines)))
+    return "\n".join(f"{str(i+1).rjust(width)} | {line}" for i, line in enumerate(lines))
+
 def format_usage(usage):
     if not usage:
         return "N/A"
     return f"In:{usage.prompt_tokens} Out:{usage.completion_tokens} Total:{usage.total_tokens}"
 
 def extract_one_liner(content: str) -> str:
-    """Extracts the first one-liner found in markdown headers like ## 💡 One-Liner."""
-    # Look for ## 💡 One-Liner followed by any text until next header or end
-    match = re.search(r"##\s*💡\s*One-Liner\s*\n+(.*?)(?=\n+##|$)", content, re.DOTALL)
-    if match:
-        return match.group(1).strip()
+    """Extracts the first executive summary/one-liner found in markdown headers."""
+    # Look for ## 💡 One-Liner or ## 💡 决策简报 followed by any text until next header or end
+    patterns = [
+        r"##\s*💡\s*决策简报\s*(?:\(Executive Summary\))?\s*\n+(.*?)(?=\n+##|$)",
+        r"##\s*💡\s*价值核心\s*(?:\(Core Value\))?\s*\n+(.*?)(?=\n+##|$)",
+        r"##\s*💡\s*风险识别\s*(?:\(Risk Spotlight\))?\s*\n+(.*?)(?=\n+##|$)",
+        r"##\s*💡\s*One-Liner\s*\n+(.*?)(?=\n+##|$)"
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, content, re.DOTALL)
+        if match:
+            return match.group(1).strip()
     return ""
 
 def run_debate(target_file: str, reference_file: str = "", instruction: str = "", **kwargs):
@@ -141,7 +154,8 @@ def run_debate(target_file: str, reference_file: str = "", instruction: str = ""
     
     client = LLMClient()
     
-    target_content = read_file(target_file, logger)
+    target_content_raw = read_file(target_file, logger)
+    target_content = prepend_line_numbers(target_content_raw)
     ref_content = read_file(reference_file, logger) if reference_file else "无参考文档"
     
     # Construct Context with Layered XML Isolation
@@ -151,7 +165,7 @@ def run_debate(target_file: str, reference_file: str = "", instruction: str = ""
     # Note: Strategic directives are now embedded in individual role prompt files
     instr_block = f"<instructions>\n"
     instr_block += f"初始目标：{instruction if instruction else '未指定'}\n"
-    if int(kwargs.get('loop', 0)) > 2:
+    if int(kwargs.get('loop', 0)) > 5:
         instr_block += "【退火策略激活】当前已进入后期迭代，请优先关注逻辑一致性与结构稳定性，避免破坏性创新。\n"
     if kwargs.get('cite_check'):
         instr_block += "【证据链要求】所有批评必须在原文中找到依据，并标注 [Line XX] 或引用具体原文段落。\n"
@@ -235,13 +249,19 @@ def run_debate(target_file: str, reference_file: str = "", instruction: str = ""
     logger.info(f"{Colors.HEADER}⚖️  [Adjudicator]{Colors.ENDC} Engaging {provider} ({model})...")
     
     adjudicator_input = f"""
+{instr_block}
+
+<history_summary>
+{ref_content}
+</history_summary>
+
 【待审材料】
 {target_content}
 
-【正方观点】
+【正方观点】 (SparkForge 价值辩护人)
 {affirmative_resp.content}
 
-【反方观点】
+【反方观点】 (SparkForge 风险审计官)
 {negative_resp.content}
 """
     try:
