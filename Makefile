@@ -22,6 +22,10 @@ help:
 	@echo ""
 	@echo "💡 Example: make a4 docs/report.md"
 	@echo "💡 Example: make debate docs/plan.md \"优化采购指标的专业性\""
+	@echo ""
+	@echo "🧹 Quality Control:"
+	@echo "  make lint [file.md]     - Check markdown syntax"
+	@echo "  make fix [file.md]      - Auto-fix markdown formatting"
 
 # -----------------------------------------------------------------------------
 # Business Formal Style
@@ -59,6 +63,30 @@ glass: check-md
 mobile: check-md
 	@echo "🚀 Generating Mobile Poster: $(MD)"
 	@$(PYTHON) $(CONVERTER) $(MD) --theme council_poster.css --width 500px --glass-cards
+
+# -----------------------------------------------------------------------------
+# Quality Control
+# -----------------------------------------------------------------------------
+
+.PHONY: lint
+lint:
+	@echo "🔍 Linting Markdown..."
+	@if [ -z "$(MD)" ]; then \
+		markdownlint "**/*.md" --ignore "**/node_modules/**" --ignore "docs/reports/**" --ignore "docs/backup/**"; \
+	else \
+		markdownlint "$(MD)"; \
+	fi
+
+.PHONY: fix
+fix:
+	@echo "🛠️  Fixing Markdown..."
+	@if [ -z "$(MD)" ]; then \
+		prettier --write "**/*.md" --ignore-path .gitignore; \
+		markdownlint --fix "**/*.md" --ignore "**/node_modules/**" --ignore "docs/reports/**" --ignore "docs/backup/**"; \
+	else \
+		prettier --write "$(MD)"; \
+		markdownlint --fix "$(MD)"; \
+	fi
 
 # -----------------------------------------------------------------------------
 # Utility
