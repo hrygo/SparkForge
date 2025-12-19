@@ -10,6 +10,9 @@ This workflow guides you through the process of refining the design draft using 
 ## Parameters
 *   `max_loops`: (Optional) Maximum number of iteration cycles. Default: 3.
 
+## 🧠 战略意图 (Strategic Intent)
+本工作流并非为了观察 AI 之间的“斗争”，而是利用对抗性思维作为**质量杠杆**。理事会（The Council）被赋予“上帝视角”，其唯一目标是协助用户锻造出具备工业级可执行性的卓越文档。
+
 ## Process Overview
 
 1.  **Extract History**: Agent intelligently summarizes past debate verdicts.
@@ -37,8 +40,10 @@ This workflow guides you through the process of refining the design draft using 
 
 ### Step 2: Convene The Council
 
-Run the debate script. Apply **Precision Cooling** (退火策略): 
-*   If `Loop > 2`, instruct models to prioritize logical consistency.
+Run the debate script. The Council is now primed with a **Strategic Directive** (God's eye view):
+*   **Strategic Priming**: Prioritize core architectural integrity over pedantic details.
+*   **Precision Cooling** (退火策略): 
+    *   If `Loop > 2`, instruct models to prioritize logical consistency and document stability.
 *   **Evidence Requirement**: Explicitly instruct the Adjudicator to provide **line citations or specific quotes** for every critique.
 
 ```bash

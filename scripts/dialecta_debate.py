@@ -147,8 +147,10 @@ def run_debate(target_file: str, reference_file: str = "", instruction: str = ""
     # Construct Context with Layered XML Isolation
     context_blocks = []
     
-    # 1. High-Level Instructions
-    instr_block = f"<instructions>\n初始目标：{instruction if instruction else '未指定'}\n"
+    # 1. High-Level Instructions (Essential Runtime Context Only)
+    # Note: Strategic directives are now embedded in individual role prompt files
+    instr_block = f"<instructions>\n"
+    instr_block += f"初始目标：{instruction if instruction else '未指定'}\n"
     if int(kwargs.get('loop', 0)) > 2:
         instr_block += "【退火策略激活】当前已进入后期迭代，请优先关注逻辑一致性与结构稳定性，避免破坏性创新。\n"
     if kwargs.get('cite_check'):
