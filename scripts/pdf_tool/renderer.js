@@ -51,6 +51,7 @@ const isA3 = args.includes('--a3');
         } else if (isA3) {
             console.log("Mode: Standard A3 Pagination");
             pdfOptions.format = 'A3';
+            // Match A4 margins for consistency
             pdfOptions.margin = { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' };
         } else {
             // Calculate flexible height

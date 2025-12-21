@@ -20,7 +20,7 @@ body {
 
 /* Long Scroll Margin (Poster Mode) */
 body:not(.paginated-mode) {
-    padding: 20mm;
+    padding: 10mm;
 }
 
 /* Formal Section Container (Alternative to Glass Card) */
