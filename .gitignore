@@ -20,9 +20,10 @@ scripts/pdf_tool/node_modules/
 # Logs
 *.log
 
-# Generated backups and reports
-docs/backup/*
-docs/reports/*
+# Docs (Allowlist only)
+docs/*
+!docs/story_workspace.md
+!docs/the_46_loop_epic.md
 
 # Strategy Documents
 **AI_Training_Strategy*

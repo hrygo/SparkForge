@@ -14,6 +14,7 @@ const inputPath = args[0];
 const outputPath = args[1];
 const width = args[2] || '210mm';
 const isA4 = args.includes('--a4');
+const isA3 = args.includes('--a3');
 
 (async () => {
     try {
@@ -46,6 +47,10 @@ const isA4 = args.includes('--a4');
         if (isA4) {
             console.log("Mode: Standard A4 Pagination");
             pdfOptions.format = 'A4';
+            pdfOptions.margin = { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' };
+        } else if (isA3) {
+            console.log("Mode: Standard A3 Pagination");
+            pdfOptions.format = 'A3';
             pdfOptions.margin = { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' };
         } else {
             // Calculate flexible height

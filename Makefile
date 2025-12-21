@@ -26,6 +26,7 @@ help:
 	@echo "------------------------------------------------------------------"
 	@echo "$(CYAN)[1. PDF GENERATION]$(RESET)"
 	@echo "  $(GREEN)make a4$(RESET) <file.md>              - Business Formal A4 Report"
+	@echo "  $(GREEN)make a3$(RESET) <file.md>              - Business Formal A3 Report"
 	@echo "  $(GREEN)make glass$(RESET) <file.md>           - Glass-Style A4 Report"
 	@echo "  $(GREEN)make poster$(RESET) <file.md>          - Professional Long-Scroll (210mm)"
 	@echo "  $(GREEN)make mobile$(RESET) <file.md>          - Mobile High-Impact Poster (500px)"
@@ -42,6 +43,7 @@ help:
 	@echo "------------------------------------------------------------------"
 	@echo "$(YELLOW)💡 EXAMPLES:$(RESET)"
 	@echo "  $(BLUE)»$(RESET) make a4 docs/plan.md"
+	@echo "  $(BLUE)»$(RESET) make a3 docs/plan.md"
 	@echo "  $(BLUE)»$(RESET) make debate docs/strategy.md \"Enhance professional tone\""
 	@echo "  $(BLUE)»$(RESET) make fix docs/AI_Training_Strategy_ALM.md"
 	@echo "------------------------------------------------------------------"
@@ -54,6 +56,11 @@ help:
 a4: check-md
 	@echo "🚀 Rendering Business A4: $(MD)"
 	@$(PYTHON) $(CONVERTER) $(MD) --theme business_formal.css --a4
+
+.PHONY: a3
+a3: check-md
+	@echo "🚀 Rendering Business A3: $(MD)"
+	@$(PYTHON) $(CONVERTER) $(MD) --theme business_formal.css --a3
 
 .PHONY: glass
 glass: check-md
