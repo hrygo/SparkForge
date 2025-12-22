@@ -134,8 +134,16 @@ class LLMClient:
                         total_tokens=response.usage_metadata.total_token_count
                     )
 
+                # Manually extract content to suppress "non-text parts" warning for Thinking models
+                content_text = ""
+                if response.candidates and response.candidates[0].content.parts:
+                    content_text = "".join(
+                        part.text for part in response.candidates[0].content.parts 
+                        if part.text
+                    )
+
                 return LLMResponse(
-                    content=response.text,
+                    content=content_text,
                     model=model,
                     provider=provider,
                     usage=usage,
