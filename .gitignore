@@ -21,10 +21,9 @@ scripts/pdf_tool/node_modules/
 *.log
 
 # Docs (Allowlist only)
-docs/*
-!docs/story_workspace.md
-!docs/the_46_loop_epic.md
+docs/backup/
+docs/reports/
+docs/AI_Training*
+docs/*.pdf
+docs/*.html
 
-# Strategy Documents
-**AI_Training_Strategy*
-*.pdf
