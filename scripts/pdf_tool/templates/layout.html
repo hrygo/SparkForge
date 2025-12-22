@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <title>{{ title }}</title>
@@ -7,17 +8,22 @@
     <link rel="stylesheet" href="{{ theme_css_path }}">
     <style>
         /* Fallback / Critical CSS if needed */
+        /* Force Mermaid Font */
+        .mermaid svg {
+            font-family: "PingFang SC", "Microsoft YaHei", "Source Han Sans CN", sans-serif !important;
+        }
     </style>
-    
+
     <!-- Mermaid JS -->
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({ 
-            startOnLoad: true, 
+        mermaid.initialize({
+            startOnLoad: true,
             theme: 'base',
+            fontFamily: '"PingFang SC", "Microsoft YaHei", "Source Han Sans CN", sans-serif',
             themeVariables: {
                 'primaryColor': '#e0f2fe',
-                'primaryTextColor': '#0073e5',
+                'primaryTextColor': '#083a6d', /* Darker for contrast */
                 'primaryBorderColor': '#00bfff',
                 'lineColor': '#0073e5',
                 'secondaryColor': '#ffedd5',
@@ -27,9 +33,11 @@
         });
     </script>
 </head>
+
 <body class="{{ body_class }}">
     <div id="poster-content">
         {{ content }}
     </div>
 </body>
+
 </html>

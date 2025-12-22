@@ -9,8 +9,10 @@ DEBATE_SCRIPT = scripts/dialecta_debate.py
 # --- Positional Arguments Capture ---
 # MD: The primary file (Markdown or PDF)
 # ARG: The secondary parameter (Instruction for debate or Message for sign)
+# ALL_ARGS: Capture all arguments after the command for multi-file processing
 MD = $(word 2,$(MAKECMDGOALS))
 ARG = $(word 3,$(MAKECMDGOALS))
+ALL_ARGS = $(filter-out $(word 1,$(MAKECMDGOALS)),$(MAKECMDGOALS))
 
 # --- Colors ---
 BLUE   = \033[34m
@@ -19,6 +21,7 @@ GREEN  = \033[32m
 YELLOW = \033[33m
 RESET  = \033[0m
 BOLD   = \033[1m
+RED    = \033[31m
 
 .PHONY: help
 help:
@@ -27,6 +30,7 @@ help:
 	@echo "$(CYAN)[1. PDF GENERATION]$(RESET)"
 	@echo "  $(GREEN)make a4$(RESET) <file.md>              - Business Formal A4 Report"
 	@echo "  $(GREEN)make a3$(RESET) <file.md>              - Business Formal A3 Report"
+	@echo "  $(GREEN)make merge-a4$(RESET) <f1.md> <f2>...  - Merge multiple files/dirs into one A4 PDF"
 	@echo "  $(GREEN)make glass-a4$(RESET) <file.md>        - Glass-Style A4 Report"
 	@echo "  $(GREEN)make glass-a3$(RESET) <file.md>        - Glass-Style A3 Report"
 	@echo "  $(GREEN)make poster$(RESET) <file.md>          - Professional Long-Scroll (210mm)"
@@ -44,9 +48,8 @@ help:
 	@echo "------------------------------------------------------------------"
 	@echo "$(YELLOW)💡 EXAMPLES:$(RESET)"
 	@echo "  $(BLUE)»$(RESET) make a4 docs/plan.md"
-	@echo "  $(BLUE)»$(RESET) make glass-a3 docs/plan.md"
+	@echo "  $(BLUE)»$(RESET) make merge-a4 docs/main.md docs/specs/"
 	@echo "  $(BLUE)»$(RESET) make debate docs/strategy.md \"Enhance professional tone\""
-	@echo "  $(BLUE)»$(RESET) make fix docs/AI_Training_Strategy_ALM.md"
 	@echo "------------------------------------------------------------------"
 
 # -----------------------------------------------------------------------------
@@ -62,6 +65,11 @@ a4: check-md
 a3: check-md
 	@echo "🚀 Rendering Business A3: $(MD)"
 	@$(PYTHON) $(CONVERTER) $(MD) --theme business_formal.css --a3
+
+.PHONY: merge-a4
+merge-a4: check-md
+	@echo "🚀 Merging & Rendering Business A4: $(ALL_ARGS)"
+	@$(PYTHON) $(CONVERTER) $(ALL_ARGS) --theme business_formal.css --a4
 
 .PHONY: glass-a4
 glass-a4: check-md
@@ -138,8 +146,8 @@ check-md:
 		echo "$(BOLD)$(RED)❌ Error: Missing input file.$(RESET) Usage: make <target> <file>"; \
 		exit 1; \
 	fi
-	@if [ ! -f "$(MD)" ]; then \
-		echo "$(BOLD)$(RED)❌ Error: File '$(MD)' not found.$(RESET)"; \
+	@if [ ! -e "$(MD)" ]; then \
+		echo "$(BOLD)$(RED)❌ Error: File or Directory '$(MD)' not found.$(RESET)"; \
 		exit 1; \
 	fi
 
