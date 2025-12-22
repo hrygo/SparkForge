@@ -197,11 +197,15 @@ def main():
     if args.output:
         final_pdf_path = os.path.abspath(args.output)
     elif files_to_process:
-        # Default to the first input file's name and directory
+        # Default output to docs/output/ directory
         first_input = files_to_process[0]
         base_name = os.path.splitext(os.path.basename(first_input))[0]
-        dir_name = os.path.dirname(first_input)
-        final_pdf_path = os.path.join(dir_name, f"{base_name}.pdf")
+        # Find project root (where docs/ is located)
+        project_root = os.path.dirname(os.path.dirname(script_dir))
+        output_dir = os.path.join(project_root, "docs", "output")
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        final_pdf_path = os.path.join(output_dir, f"{base_name}.pdf")
     else:
         final_pdf_path = os.path.join(os.getcwd(), "output.pdf")
         

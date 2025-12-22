@@ -23,7 +23,5 @@ scripts/pdf_tool/node_modules/
 # Docs (Allowlist only)
 docs/backup/
 docs/reports/
-docs/AI_Training*
-docs/*.pdf
-docs/*.html
-
+docs/internal/
+docs/output/
