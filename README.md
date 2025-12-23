@@ -192,14 +192,18 @@ python3 scripts/dialecta_debate.py {文档路径} --instruction "优化目标" -
 这是 SparkForge 的核心能力。你可以通过以下两种方式召唤 **外科医生** 与 **理事会** 进行协作，直至文档评分 **>= 90**。
 
 #### 方式一：当前文档上下文模式（推荐）
+
 在 IDE 编辑器中打开目标文档，直接输入指令：
+
 ```bash
 # 针对当前打开的文档，追加具体的优化指令（可选）
 /optimize-design-loop "多视角全方位展开辩论，‘锻造’文档"
 ```
 
 #### 方式二：指定文件路径模式
+
 显式指定要优化的文档路径：
+
 ```bash
 # 针对 docs/example.md，追加具体的优化指令（可选）
 /optimize-design-loop docs/example.md "从可行性方面展开讨论，‘锻造’文档"
@@ -222,6 +226,7 @@ make glass 'docs/PRD_Spec_Builder.md'
 ```
 
 PDF 生成引擎会自动处理：
+
 - Markdown 渲染与样式注入
 - Mermaid 图表高清渲染
 - 智能分页与目录书签注入
