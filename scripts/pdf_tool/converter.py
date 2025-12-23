@@ -189,6 +189,8 @@ def main():
     body_classes = []
     if args.glass_cards: body_classes.append("glass-theme")
     if args.a4 or args.a3: body_classes.append("paginated-mode")
+    if args.a4: body_classes.append("mode-a4")
+    if args.a3: body_classes.append("mode-a3")
     
     # Output Paths
     temp_dir = os.path.join(script_dir, "temp_build")
@@ -200,12 +202,20 @@ def main():
         # Default output to docs/output/ directory
         first_input = files_to_process[0]
         base_name = os.path.splitext(os.path.basename(first_input))[0]
+        
+        # Suffix logic
+        suffix = ""
+        if args.glass_cards: suffix += "_glass"
+        if args.a4: suffix += "_A4"
+        elif args.a3: suffix += "_A3"
+        elif args.width == "210mm": suffix += "_poster" # Implicit poster logic for default width
+        
         # Find project root (where docs/ is located)
         project_root = os.path.dirname(os.path.dirname(script_dir))
         output_dir = os.path.join(project_root, "docs", "output")
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
-        final_pdf_path = os.path.join(output_dir, f"{base_name}.pdf")
+        final_pdf_path = os.path.join(output_dir, f"{base_name}{suffix}.pdf")
     else:
         final_pdf_path = os.path.join(os.getcwd(), "output.pdf")
         

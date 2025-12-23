@@ -23,7 +23,17 @@ body {
     line-height: 1.6;
     color: #1a202c;
     margin: 0;
+    padding: 0;
+    /* Default Poster Padding */
+    width: 100%;
+}
+
+/* Poster Mode Only Padding */
+body:not(.paginated-mode) {
     padding: 15mm;
+}
+
+body {
     width: 100%;
     box-sizing: border-box;
     max-width: 100%;
@@ -181,12 +191,18 @@ th {
     border-bottom: 2px solid #cbd5e1;
 }
 
+/* First column: prevent wrapping per user request */
 th:nth-child(1),
-td:nth-child(1),
+td:nth-child(1) {
+    white-space: nowrap;
+    width: auto;
+    font-weight: 600;
+}
+
+/* Second column: allow wrapping */
 th:nth-child(2),
 td:nth-child(2) {
     white-space: normal;
-    /* Allow wrapping for better density */
     width: auto;
     font-weight: 600;
 }

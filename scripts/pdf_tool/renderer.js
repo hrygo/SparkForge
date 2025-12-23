@@ -116,11 +116,11 @@ const isA3 = args.includes('--a3');
         if (isA4) {
             console.log("Mode: Standard A4 Pagination");
             pdfOptions.format = 'A4';
-            pdfOptions.margin = { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' };
+            pdfOptions.margin = { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' };
         } else if (isA3) {
             console.log("Mode: Standard A3 Pagination");
             pdfOptions.format = 'A3';
-            pdfOptions.margin = { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' };
+            pdfOptions.margin = { top: '20mm', right: '20mm', bottom: '20mm', left: '20mm' };
         } else {
             const bodyHeight = await page.evaluate(() => document.body.scrollHeight + 50);
             console.log(`Mode: Long Scroll (${width} x ${bodyHeight}px)`);
