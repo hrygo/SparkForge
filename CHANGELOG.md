@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.2] - 2025-12-23
+
+### Changed
+
+- **PRD 术语规范化**: 在 `PRD_Spec_Builder.md` 中将 "智能 IDE"、"Cursor"、"Copilot" 等特定厂商词汇统一替换为中立的 **"AI Coder"**，以突显平台中立性。
+- **术语表增强**: 新增 **Spec** (规格)、**SDD** (规格驱动开发) 标准定义，并细化 **BizDevOps** 为"企业级全生命周期研发管理平台"。
+- **架构图布局优化**: 重构 PRD 3.1 节功能架构图为 **2x2 矩阵布局**，完美适配 A4 纸张比例，避免垂直方向过长。
+- **CLI 使用体验**: 优化 `README.md` 中 `/optimize-design-loop` 的使用示例，清晰区分 "上下文模式" 与 "指定文件模式"。
+
 ## [1.0.1] - 2025-12-19
 
 ### Changed

@@ -1,6 +1,6 @@
 # ⚡ SparkForge 2.0: AI 原生决策与执行规划引擎
 
-![Version](https://img.shields.io/badge/version-1.0.1-blue)
+![Version](https://img.shields.io/badge/version-1.0.2-blue)
 
 > **使命 (Mission)**: 通过对抗式 AI (Adversarial AI) 与外科手术级精度，将挥发的原始创意锻造成工业级的执行方案。
 
@@ -189,13 +189,21 @@ python3 scripts/dialecta_debate.py {文档路径} --instruction "优化目标" -
 
 ### 3. 启动自动化优化循环 (Autonomous)
 
-这是 SparkForge 的核心能力：
+这是 SparkForge 的核心能力。你可以通过以下两种方式召唤 **外科医生** 与 **理事会** 进行协作，直至文档评分 **>= 90**。
 
-1. 在 IDE 中打开目标文档。
-2. 输入 `/optimize-design-loop` 召唤工作流。
-3. 观察 **外科医生** 与 **理事会** 协作，直至文档评分 **>= 90**。
+#### 方式一：当前文档上下文模式（推荐）
+在 IDE 编辑器中打开目标文档，直接输入指令：
+```bash
+# 针对当前打开的文档，追加具体的优化指令（可选）
+/optimize-design-loop "多视角全方位展开辩论优化文档"
+```
 
----
+#### 方式二：指定文件路径模式
+显式指定要优化的文档路径：
+```bash
+# 针对 docs/example.md，追加具体的优化指令（可选）
+/optimize-design-loop docs/example.md "从可行性方面展开讨论和优化"
+```
 
 ## 🎨 设计哲学
 
