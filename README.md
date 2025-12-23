@@ -1,6 +1,6 @@
 # ⚡ SparkForge 2.0: AI 原生决策与执行规划引擎
 
-![Version](https://img.shields.io/badge/version-1.0.2-blue)
+![Version](https://img.shields.io/badge/version-1.0.3-blue)
 
 > **使命 (Mission)**: 通过对抗式 AI (Adversarial AI) 与外科手术级精度，将挥发的原始创意锻造成工业级的执行方案。
 
@@ -204,6 +204,26 @@ python3 scripts/dialecta_debate.py {文档路径} --instruction "优化目标" -
 # 针对 docs/example.md，追加具体的优化指令（可选）
 /optimize-design-loop docs/example.md "从可行性方面展开讨论和优化"
 ```
+
+### 4. 📄 导出发布级 PDF (Publish)
+
+当文档经过优化达到标准后，你可以使用内置的 `scripts/pdf_tool` 将其导出为排版精美的 PDF，直接用于正式发布。
+
+支持输出 **A4 标准报告** 或 **Glass 风格长图**：
+
+```bash
+# 导出标准商务 A4 格式 PDF
+make a4 'docs/PRD_Spec_Builder.md'
+
+# 导出 Glass 风格长图 PDF
+make glass 'docs/PRD_Spec_Builder.md'
+```
+
+PDF 生成引擎会自动处理：
+- Markdown 渲染与样式注入
+- Mermaid 图表高清渲染
+- 智能分页与目录书签注入
+- (可选) 基于 `phantom-guard` 的安全签名
 
 ## 🎨 设计哲学
 

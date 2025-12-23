@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.3] - 2025-12-23
+
+### Added
+
+- **文档发布闭环**: 在 `README.md` 中新增 **"导出发布级 PDF"** 章节，详细引导用户使用 `scripts/pdf_tool` 生成高质量 A4 报告与长图，补全了从优化到发布的最后一块拼图。
+
 ## [1.0.2] - 2025-12-23
 
 ### Changed
