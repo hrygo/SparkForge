@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.4] - 2025-12-23
+
+### Added
+
+- **深度锻造模式 (彩蛋)**: 在 `README.md` 中揭示了隐藏指令——使用 **"锻造"** 关键词即可触发更严苛的工业级审查模式。
+- **CLI 示例增强**: 进一步优化了自动化优化循环的指令示例，添加了带有 "锻造" 意图的实战 Case。
+
 ## [1.0.3] - 2025-12-23
 
 ### Added
