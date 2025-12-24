@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2025-12-24
+
+### Added
+
+- **MathJax 公式支持**: 实现了在 PDF 转换中对 LaTeX 公式的渲染支持，确保技术文档中的数学表达精确呈现。
+- **LLM 客户端弹性增强**: 新增重试与 Fallback 机制。实现了 Provider 级联回退 (Sticky Fallback)，提升了长任务的稳定性。
+
+### Changed
+
+- **样式优化**: 调整了引用块 (Blockquote) 的样式。
+- **文档更新**: 同步更新 README 与 PRD 文档。
+
 ## [1.0.4] - 2025-12-23
 
 ### Added
