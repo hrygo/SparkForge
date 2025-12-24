@@ -38,6 +38,19 @@ const isA3 = args.includes('--a3');
             console.log('No Mermaid diagrams found or timed out. Proceeding...');
         }
 
+        // Wait for MathJax to render formulas
+        try {
+            // Wait for MathJax object to be attached (5s timeout)
+            await page.waitForFunction(() => window.MathJax && window.MathJax.typesetPromise, { timeout: 5000 });
+            // Force a typeset to ensure everything is rendered
+            await page.evaluate(async () => {
+                await window.MathJax.typesetPromise();
+            });
+            console.log('MathJax formulas rendered.');
+        } catch (e) {
+            console.log('MathJax rendering skipped or timed out.');
+        }
+
         // --- BOOKMARK EXTRACTION STRATEGY ---
         // We calculate the position of headers to estimate page numbers.
         // Standard A4: 297mm height. Puppeteer 96DPI: 1px = 0.264583mm. 

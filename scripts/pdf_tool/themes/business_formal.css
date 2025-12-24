@@ -108,15 +108,18 @@ em {
 
 /* Blockquote - Formal sidebar / highlights */
 blockquote {
-    background: #f7fafc;
-    border-left: 5px solid #2b6cb0;
-    /* Blue 700 */
-    margin: 30px 0;
-    padding: 20px 25px;
-    color: #2d3748;
-    font-size: 11pt;
-    font-style: italic;
-    border-radius: 0 4px 4px 0;
+    background: #f8fafc;
+    border-left: 3px solid #1a365d;
+    /* Navy 900 - Professional & Consistent */
+    margin: 4px 0;
+    padding: 12px 20px;
+    color: #4a5568;
+    /* Gray 700 */
+    font-size: 10.5pt;
+    /* Same as body for consistency, or slightly smaller */
+    font-style: normal;
+    /* Clean, non-italic */
+    border-radius: 2px;
 }
 
 /* Tables - High contrast and professional */

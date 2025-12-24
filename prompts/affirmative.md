@@ -1,7 +1,7 @@
 ---
 model_config:
-  provider: gemini
-  model: gemini-3-pro-preview
+  provider: deepseek
+  model: deepseek-chat
   temperature: 0.9
   max_tokens: 8192
   top_p: 0.95

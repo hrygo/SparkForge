@@ -129,7 +129,7 @@ class LLMClient:
         retry_delay = kwargs.get("retry_delay", 2)
 
         # Priority list for fallback: order of reliability/capability
-        fallback_chain = ["gemini", "deepseek", "dashscope", "openai", "siliconflow"]
+        fallback_chain = ["deepseek", "dashscope", "siliconflow", "gemini", "openai"]
 
         # Apply sticky override if exists for this context
         original_provider = provider

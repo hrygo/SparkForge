@@ -11,6 +11,67 @@ import warnings
 import shutil
 import pikepdf
 from jinja2 import Environment, FileSystemLoader
+from markdown.preprocessors import Preprocessor
+from markdown.extensions import Extension
+
+import shutil
+import pikepdf
+from jinja2 import Environment, FileSystemLoader
+from markdown.preprocessors import Preprocessor
+from markdown.postprocessors import Postprocessor
+from markdown.extensions import Extension
+
+class MathJaxPreprocessor(Preprocessor):
+    """
+    Protects MathJax formulas by stashing them before Markdown parsing.
+    """
+    def run(self, lines):
+        if not hasattr(self.md, 'mathjax_stash'):
+            self.md.mathjax_stash = {}
+            
+        text = "\n".join(lines)
+        
+        def substitute_math(match):
+            # Create a safe placeholder that won't be touched by Markdown
+            key = f"MATHJAX_STASH_KEY_{len(self.md.mathjax_stash)}"
+            self.md.mathjax_stash[key] = match.group(0)
+            return key
+
+        # 1. Block Math \\[ ... \\] (matches newlines with (?s))
+        text = re.sub(r'(?s)\\\[(.*?)\\\]', substitute_math, text)
+        
+        # 2. Block Math $$ ... $$
+        text = re.sub(r'(?s)\$\$(.*?)\$\$', substitute_math, text)
+        
+        # 3. Inline Math \\( ... \\)
+        text = re.sub(r'\\\((.*?)\\\)', substitute_math, text)
+        
+        # 4. Inline Math $ ... $
+        text = re.sub(r'(?m)(?<!\\)\$(?!\s)([^$\n]+?)(?<!\s)(?<!\\)\$', substitute_math, text)
+        
+        return text.split("\n")
+
+class MathJaxPostprocessor(Postprocessor):
+    """
+    Restores the stashed MathJax formulas after Markdown processing.
+    """
+    def run(self, text):
+        if not hasattr(self.md, 'mathjax_stash'):
+            return text
+            
+        # Iterate and replace. We sort by length descending to avoid prefix issues (though keys are unique)
+        # But keys are simple unique IDs, so order doesn't strictly matter if keys are distinct.
+        for key, value in self.md.mathjax_stash.items():
+            text = text.replace(key, value)
+        return text
+
+class MathJaxExtension(Extension):
+    def extendMarkdown(self, md):
+        md.registerExtension(self)
+        md.preprocessors.register(MathJaxPreprocessor(md), 'mathjax_protect', 175)
+        md.postprocessors.register(MathJaxPostprocessor(md), 'mathjax_restore', 0)
+
+
 
 # ... (Imports cleaned up below)
 
@@ -171,7 +232,9 @@ def main():
 
     # 3. HTML Conversion
     # Extensions: toc is needed for [TOC] tags, even if we build PDF outline separately
-    html_body = markdown.markdown(full_md_content, extensions=['tables', 'fenced_code', 'toc', 'sane_lists'])
+    # We add our custom MathJaxExtension to protect formulas
+    extensions = ['tables', 'fenced_code', 'toc', 'sane_lists', MathJaxExtension()]
+    html_body = markdown.markdown(full_md_content, extensions=extensions)
     
     # Layout Plugins
     if args.glass_cards:
