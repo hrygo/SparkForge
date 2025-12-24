@@ -1,6 +1,11 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [1.1.1] - 2025-12-24
+
+### Fixed
+
+- **依赖审计与清理**: 审计并补全了 `requirements.txt` 中遗漏的 `Markdown`, `pikepdf`, `Jinja2` 关键依赖，并移除了冗余的 `google-generativeai` 库。
 
 ## [1.1.0] - 2025-12-24
 
