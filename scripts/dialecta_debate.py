@@ -152,7 +152,7 @@ def run_debate(target_file: str, reference_file: str = "", instruction: str = ""
     usage_stats = {"affirmative": None, "negative": None, "adjudicator": None}
     time_stats = {}
     
-    client = LLMClient()
+    client = LLMClient(context_id=str(Path(target_file).absolute()))
     
     target_content_raw = read_file(target_file, logger)
     target_content = prepend_line_numbers(target_content_raw)
@@ -397,7 +397,12 @@ if __name__ == "__main__":
         print(f"{Colors.RED}Error: Target file not found: {args.target}{Colors.ENDC}")
         sys.exit(1)
         
-    result = run_debate(args.target, args.ref, args.instruction, loop=args.loop, cite_check=args.cite)
-    if not result:
-        sys.exit(1)
-    sys.exit(0)
+    try:
+        result = run_debate(args.target, args.ref, args.instruction, loop=args.loop, cite_check=args.cite)
+        if not result:
+            sys.exit(1)
+        sys.exit(0)
+    except KeyboardInterrupt:
+        print(f"\n{Colors.YELLOW}⚠️  Debate interrupted by user (Ctrl+C). Exiting...{Colors.ENDC}")
+        # Force exit to stop child threads if they are hanging
+        os._exit(1)
