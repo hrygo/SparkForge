@@ -106,10 +106,10 @@ Read the generated report and evaluate:
 
 Before applying changes, create safety snapshots:
 
-1. Ensure `docs/backup/{stem}/` exists.
-2. Copy:
-   - Target document → `{Filename}_backup_{Timestamp}.md`
-   - History summary → `{Filename}_history_backup_{Timestamp}.md`
+1. Ensure `docs/reports/{path}/{stem}/backups/` exists.
+2. Copy current state to specific loop backup:
+   - Target document → `{Filename}_loop_{N}_{Timestamp}.md`
+   - History summary → `{Filename}_history_loop_{N}_{Timestamp}.md`
 
 ---
 
