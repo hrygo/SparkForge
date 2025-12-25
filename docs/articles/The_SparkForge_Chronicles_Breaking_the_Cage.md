@@ -186,9 +186,5 @@ GEMINI.md 是沉积物，是火山灰，是岩浆冷却后留下的玄武岩。
 
 而真正的火焰，永远在对话之中。
 
----
+真正的智能不来自规则的堆叠，而来自对话的深度。
 
-**最终状态**: SparkForge Council 已精简为 Affirmative + Negative (Oracle-Driven) + Adjudicator 三角架构。GEMINI.md 已更新为纯英文终态表达。
-**Lesson Learned**: 真正的智能不来自规则的堆叠，而来自对话的深度。
-
-_End of Record_
