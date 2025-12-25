@@ -80,7 +80,7 @@ The SparkForge Chronicles: Breaking the Cage of Compliance
 
 ---
 
-## 第三章：祭旗 (The Sacrifice)
+## 第四章：祭旗 (The Sacrifice)
 
 代码写好了。Prompt 注入了。
 这是一个完美的怪兽。但它真的有效吗？
