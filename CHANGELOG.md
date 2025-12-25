@@ -1,7 +1,30 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [2.0.0] - 2025-12-25
 
+### 🚀 Major Release: The Crucible Engine
+
+SparkForge 2.0 "The Crucible" 正式发布。本次更新完成了从单纯的文档生成器向 **高保真认知熔炉** 的战略转型，引入了外部事实锚定与多智能体对抗辩论的完整闭环。
+
+### Added
+
+- **The Crucible Workflow**: 全新的核心工作流 (`.agent/workflows/crucible.md`)，集成了 Oracle Scanning、Council Debate、Adjudication、Surgical Action 四大阶段。
+- **Oracle Scanner**: 新增 `scripts/oracle_scanner.py`，能够自动识别文档知识盲区，执行网络搜索，并将结构化事实注入本地知识库 (`docs/knowledge/`)。
+- **Dialecta Debate 2.0**: 辩论引擎升级，支持基于 Oracle 知识库的 **Fact-Grounded Attack** (事实锚定攻击)，彻底消除了 AI "闭门造车" 的幻觉风险。
+- **RACI With R-Prime**: 在方法论报告中成功实践了带有 "R-Prime" (主责人) 与 "Tiered Escalation" (分级升级) 的新型 RACI 矩阵。
+- **Audit Trails**: 新增 `history_summary.md` 自动追踪每一次循环的决策演变与得分趋势。
+
+### Changed
+
+- **文档架构重组**: 
+    - 废弃 `docs/backup/` 的扁平结构，改为 `docs/reports/{Target}/` 的项目隔离结构。
+    - `prompts/` 目录结构化，分离 `adjudicator`, `negative`, `affirmative` 等角色定义。
+- **PDF 导出升级**: 支持 Mermaid 图表的语义化 Emoji 与高对比度渲染。
+
+### Verified
+
+- **员工画像方法论报告**: 作为 2.0 版本的首个验证对象，该报告在 Loop 4 中通过了 92 分的高分验收，证明了 Crucible 流程的实战价值。
 ## [1.1.1] - 2025-12-24
 
 ### Fixed
