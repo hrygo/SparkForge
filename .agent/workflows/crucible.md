@@ -52,12 +52,14 @@ python3 scripts/oracle_scanner.py {target}
 ## Phase 1: Knowledge Retrieval (Agent Action)
 
 **[AGENT ACTION]**: Read `docs/oracle_requests/{path}/{stem}/latest.md` and use `search_web` to find:
+
 - Official Documentation / RFCs
 - SOTA Benchmarks (within last 12 months)
 - Known Vulnerabilities (CVEs)
 - Comparative analyses
 
 **[AGENT ACTION]**: Write findings to `docs/knowledge/{path}/{stem}/facts_{timestamp}.md`.
+
 - Format: Markdown with bullet points and source links.
 - Tone: Objective, purely factual.
 
@@ -134,6 +136,7 @@ Before applying changes, create safety snapshots:
 ## Exit
 
 When the loop exits:
+
 1. Archive the final report.
 2. Notify the User with final score and verdict.
 3. If successful, the document is ready for review via **Gatekeeper Approval**.

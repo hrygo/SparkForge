@@ -1,6 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
 ## [2.0.0] - 2025-12-25
 
 ### 🚀 Major Release: The Crucible Engine
@@ -17,14 +18,15 @@ SparkForge 2.0 "The Crucible" 正式发布。本次更新完成了从单纯的�
 
 ### Changed
 
-- **文档架构重组**: 
-    - 废弃 `docs/backup/` 的扁平结构，改为 `docs/reports/{Target}/` 的项目隔离结构。
-    - `prompts/` 目录结构化，分离 `adjudicator`, `negative`, `affirmative` 等角色定义。
+- **文档架构重组**:
+  - 废弃 `docs/backup/` 的扁平结构，改为 `docs/reports/{Target}/` 的项目隔离结构。
+  - `prompts/` 目录结构化，分离 `adjudicator`, `negative`, `affirmative` 等角色定义。
 - **PDF 导出升级**: 支持 Mermaid 图表的语义化 Emoji 与高对比度渲染。
 
 ### Verified
 
 - **员工画像方法论报告**: 作为 2.0 版本的首个验证对象，该报告在 Loop 4 中通过了 92 分的高分验收，证明了 Crucible 流程的实战价值。
+
 ## [1.1.1] - 2025-12-24
 
 ### Fixed
