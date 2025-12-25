@@ -62,3 +62,4 @@ NegativeConfig = loader.get_config("negative")
 
 AdjudicatorPrompt = loader.get_prompt("adjudicator")
 AdjudicatorConfig = loader.get_config("adjudicator")
+

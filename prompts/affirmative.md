@@ -1,8 +1,8 @@
 ---
 model_config:
-  provider: deepseek
-  model: deepseek-chat
-  temperature: 0.9
+  provider: dashscope
+  model: qwen-max
+  temperature: 0.8
   max_tokens: 8192
   top_p: 0.95
 ---

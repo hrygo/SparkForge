@@ -1,4 +1,13 @@
 #!/usr/bin/env python3
+"""
+SparkForge Council Debate CLI
+
+A dialectical debate engine with:
+- Affirmative (Qwen): Value Defender
+- Negative (DeepSeek): Risk Auditor + Oracle Challenger
+- Adjudicator (GLM): Final Verdict
+- Oracle: External fact injection (via --oracle flag)
+"""
 import sys
 import os
 import argparse
@@ -20,8 +29,9 @@ from llm import LLMClient
 from prompts.templates import (
     AffirmativeConfig, AffirmativePrompt,
     NegativeConfig, NegativePrompt,
-    AdjudicatorConfig, AdjudicatorPrompt
+    AdjudicatorConfig, AdjudicatorPrompt,
 )
+from scripts.grounding_verifier import run_grounding_check
 
 # ANSI Colors for CLI
 class Colors:
@@ -44,7 +54,6 @@ class ThinkingSpinner:
 
     def spin(self):
         while self.running:
-            # \r moves cursor to start of line
             sys.stdout.write(f"\r{Colors.CYAN}{next(self.spinner)}{Colors.ENDC} {self.message}")
             sys.stdout.flush()
             time.sleep(self.delay)
@@ -59,8 +68,7 @@ class ThinkingSpinner:
         self.running = False
         if self.thread:
             self.thread.join()
-        # Clear the line
-        sys.stdout.write(f"\r{' ' * (len(self.message) + 4)}\r")
+        sys.stdout.write(f"\r{' ' * (len(self.message) + 40)}\r")
         sys.stdout.flush()
 
 # Setup Logging
@@ -69,7 +77,6 @@ def setup_logging(log_dir: Path):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_file = log_dir / f"debate_exec_{timestamp}.log"
     
-    # Simple Log Pruning: Keep only last 20 logs to save space
     existing_logs = sorted(log_dir.glob("debate_exec_*.log"))
     if len(existing_logs) > 20:
         for old_log in existing_logs[:-20]:
@@ -81,21 +88,16 @@ def setup_logging(log_dir: Path):
     logger = logging.getLogger("DialectaDebate")
     logger.setLevel(logging.DEBUG)
     
-    # Clear handlers if any
     if logger.hasHandlers():
         logger.handlers.clear()
         
-    # File Handler - Detailed & Clean (No colors codes preferably, but we might log colors if we aren't careful)
-    # Ideally checking if we want to strip colors for file, but keeping it simple for now.
     fh = logging.FileHandler(log_file, encoding='utf-8')
     fh.setLevel(logging.DEBUG)
     fh_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     fh.setFormatter(fh_formatter)
     
-    # Console Handler
     ch = logging.StreamHandler(sys.stdout)
     ch.setLevel(logging.INFO)
-    # Simple formatter for console
     ch_formatter = logging.Formatter('%(message)s')
     ch.setFormatter(ch_formatter)
     
@@ -115,18 +117,16 @@ def read_file(path: str, logger: logging.Logger) -> str:
 
 def prepend_line_numbers(text: str) -> str:
     lines = text.splitlines()
-    # Format: "  1 | content"
     width = len(str(len(lines)))
     return "\n".join(f"{str(i+1).rjust(width)} | {line}" for i, line in enumerate(lines))
 
 def format_usage(usage):
     if not usage:
         return "N/A"
-    return f"In:{usage.prompt_tokens} Out:{usage.completion_tokens} Total:{usage.total_tokens}"
+    return f"In:{usage.prompt_tokens} Out:{usage.completion_tokens} Tot:{usage.total_tokens}"
 
 def extract_one_liner(content: str) -> str:
     """Extracts the first executive summary/one-liner found in markdown headers."""
-    # Look for ## 💡 One-Liner or ## 💡 决策简报 followed by any text until next header or end
     patterns = [
         r"##\s*💡\s*决策简报\s*(?:\(Executive Summary\))?\s*\n+(.*?)(?=\n+##|$)",
         r"##\s*💡\s*价值核心\s*(?:\(Core Value\))?\s*\n+(.*?)(?=\n+##|$)",
@@ -146,7 +146,6 @@ def run_debate(target_file: str, reference_file: str = "", instruction: str = ""
     
     logger.info(f"{Colors.HEADER}🏁 Starting Dialecta Debate Sequence{Colors.ENDC}")
     logger.info(f"📂 Target: {Colors.BOLD}{target_file}{Colors.ENDC}")
-    logger.info(f"📝 Logs: {Colors.BOLD}{log_file_path}{Colors.ENDC}")
     
     start_time = time.time()
     usage_stats = {"affirmative": None, "negative": None, "adjudicator": None}
@@ -157,36 +156,39 @@ def run_debate(target_file: str, reference_file: str = "", instruction: str = ""
     target_content_raw = read_file(target_file, logger)
     target_content = prepend_line_numbers(target_content_raw)
     ref_content = read_file(reference_file, logger) if reference_file else "无参考文档"
+    oracle_content = read_file(kwargs.get('oracle_file', ''), logger) if kwargs.get('oracle_file') else ""
     
-    # Construct Context with Layered XML Isolation
+    # Construct Context
     context_blocks = []
-    
-    # 1. High-Level Instructions (Essential Runtime Context Only)
-    # Note: Strategic directives are now embedded in individual role prompt files
     instr_block = f"<instructions>\n"
     instr_block += f"初始目标：{instruction if instruction else '未指定'}\n"
     if int(kwargs.get('loop', 0)) > 5:
-        instr_block += "【退火策略激活】当前已进入后期迭代，请优先关注逻辑一致性与结构稳定性，避免破坏性创新。\n"
+        instr_block += "【退火策略激活】当前已进入后期迭代，请优先关注逻辑一致性与结构稳定性。\n"
     if kwargs.get('cite_check'):
         instr_block += "【证据链要求】所有批评必须在原文中找到依据，并标注 [Line XX] 或引用具体原文段落。\n"
+    if oracle_content:
+        instr_block += "【🔮 ORACLE INTEGRATION】: 已注入外部事实核查数据。请优先基于 <oracle_fact_check> 中的信息进行判断，修正任何过时的内部假设。\n"
     instr_block += "</instructions>"
     context_blocks.append(instr_block)
-
-    # 2. Historical Context (History Summary)
-    context_blocks.append(f"<history_summary>\n{ref_content}\n</history_summary>")
     
-    # 3. Target Material
+    if oracle_content:
+        context_blocks.append(f"<oracle_fact_check>\n{oracle_content}\n</oracle_fact_check>")
+        logger.info(f"🔮 Oracle Knowledge injected ({len(oracle_content)} bytes)")
+        
+    context_blocks.append(f"<history_summary>\n{ref_content}\n</history_summary>")
     context_blocks.append(f"<target_material>\n{target_content}\n</target_material>")
     
     user_input = "\n\n".join(context_blocks)
     
-    # Define parallel execution helper
+    # ---------------------------------------------------------
+    # Phase 1: Parallel Arguments (Affirmative vs Negative)
+    # ---------------------------------------------------------
+    
     def call_phase(role_name, prompt, config):
         p_start = time.time()
         provider = config.get('provider')
         model = config.get('model')
         logger.info(f"🚀 [{role_name}] Engaging {provider} ({model})...")
-        
         try:
             res = client.chat(
                 messages=[
@@ -195,58 +197,76 @@ def run_debate(target_file: str, reference_file: str = "", instruction: str = ""
                 ],
                 **config
             )
-            p_duration = time.time() - p_start
-            return res, p_duration
+            return res, time.time() - p_start
         except Exception as e:
             logger.error(f"❌ {role_name} API Call Failed: {e}")
             raise
 
-    # 1 & 2. Parallel Affirmative and Negative Phase
-    logger.info(f"\n{Colors.CYAN}🔥 [Parallel Phase] Generating Affirmative & Negative arguments...{Colors.ENDC}")
+    logger.info(f"\n{Colors.CYAN}🔥 [Council Phase] Generating arguments...{Colors.ENDC}")
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        with ThinkingSpinner("Both sides are preparing their arguments...\n\n", delay=1.0):
-            future_aff = executor.submit(call_phase, "Affirmative", AffirmativePrompt, AffirmativeConfig)
-            future_neg = executor.submit(call_phase, "Negative", NegativePrompt, NegativeConfig)
+        msg = "Council members are deliberating...\n"
+        workers_map = {}
+        
+        with ThinkingSpinner(msg, delay=1.0):
+            workers_map["affirmative"] = executor.submit(call_phase, "Affirmative", AffirmativePrompt, AffirmativeConfig)
+            workers_map["negative"] = executor.submit(call_phase, "Negative", NegativePrompt, NegativeConfig)
             
-            # Wait for results with global timeout (180s)
-            futures = {"Affirmative": future_aff, "Negative": future_neg}
-            done, not_done = concurrent.futures.wait(futures.values(), timeout=180)
+            done, not_done = concurrent.futures.wait(workers_map.values(), timeout=240)
             
             if not_done:
-                logger.error(f"{Colors.RED}💥 Parallel Phase Timeout: Some LLM calls exceeded 180s limit.{Colors.ENDC}")
+                logger.error(f"{Colors.RED}💥 Timeout: Some LLM calls exceeded 240s.{Colors.ENDC}")
                 for f in not_done: f.cancel()
                 return None
 
-            # Collect Affirmative
-            try:
-                affirmative_resp, time_stats["affirmative"] = future_aff.result()
-                usage_stats["affirmative"] = affirmative_resp.usage
-                one_liner = extract_one_liner(affirmative_resp.content)
-                logger.info(f"{Colors.GREEN}✅ Affirmative generated.{Colors.ENDC} ({format_usage(affirmative_resp.usage)})")
-                if one_liner:
-                    logger.info(f"{Colors.CYAN}📢 One-Liner: {Colors.ENDC}{one_liner}\n")
-            except Exception as e:
-                logger.error(f"{Colors.RED}💥 Affirmative Phase Failed: {e}{Colors.ENDC}")
-                return None
+    # Collect Results
+    responses = {}
+    
+    def process_result(key, future, color):
+        try:
+            resp, dur = future.result()
+            usage_stats[key] = resp.usage
+            time_stats[key] = dur
+            responses[key] = resp
+            one_liner = extract_one_liner(resp.content)
+            logger.info(f"{color}✅ {key.capitalize()} generated.{Colors.ENDC} ({format_usage(resp.usage)})")
+            if one_liner:
+                logger.info(f"   📢 Opinion: {one_liner[:100]}...")
+            return resp
+        except Exception as e:
+            logger.error(f"{Colors.RED}💥 {key.capitalize()} failed: {e}{Colors.ENDC}")
+            return None
 
-            # Collect Negative
-            try:
-                negative_resp, time_stats["negative"] = future_neg.result()
-                usage_stats["negative"] = negative_resp.usage
-                one_liner = extract_one_liner(negative_resp.content)
-                logger.info(f"{Colors.GREEN}✅ Negative generated.{Colors.ENDC} ({format_usage(negative_resp.usage)})")
-                if one_liner:
-                    logger.info(f"{Colors.CYAN}📢 One-Liner: {Colors.ENDC}{one_liner}\n")
-            except Exception as e:
-                logger.error(f"{Colors.RED}💥 Negative Phase Failed: {e}{Colors.ENDC}")
-                return None
+    responses["affirmative"] = process_result("affirmative", workers_map["affirmative"], Colors.GREEN)
+    responses["negative"] = process_result("negative", workers_map["negative"], Colors.BLUE)
+        
+    if not responses["affirmative"] or not responses["negative"]:
+        logger.error("Critical failure: Affirmative or Negative failed.")
+        return None
 
-    # 3. Adjudicator Phase
+    # ---------------------------------------------------------
+    # Phase 2: Grounding Verification
+    # ---------------------------------------------------------
+    grounding_report_md = ""
+    if kwargs.get('cite_check'):
+        logger.info(f"\n{Colors.CYAN}🔍 [Grounding Check] Verifying citations...{Colors.ENDC}")
+        try:
+            grounding_report, grounding_report_md = run_grounding_check(
+                target_content_raw,
+                responses["affirmative"].content,
+                responses["negative"].content,
+                logger=logger
+            )
+        except Exception as e:
+            logger.warning(f"⚠️  Grounding check failed: {e}")
+
+    # ---------------------------------------------------------
+    # Phase 3: Adjudicator
+    # ---------------------------------------------------------
     phase_start = time.time()
     provider = AdjudicatorConfig.get('provider')
     model = AdjudicatorConfig.get('model')
-    logger.info(f"{Colors.HEADER}⚖️  [Adjudicator]{Colors.ENDC} Engaging {provider} ({model})...")
+    logger.info(f"\n{Colors.HEADER}⚖️  [Adjudicator]{Colors.ENDC} Engaging {provider} ({model})...")
     
     adjudicator_input = f"""
 {instr_block}
@@ -259,13 +279,19 @@ def run_debate(target_file: str, reference_file: str = "", instruction: str = ""
 {target_content}
 
 【正方观点】 (SparkForge 价值辩护人)
-{affirmative_resp.content}
+{responses["affirmative"].content}
 
-【反方观点】 (SparkForge 风险审计官)
-{negative_resp.content}
+【反方观点】 (SparkForge 风险审计官 + Oracle-Driven Challenger)
+{responses["negative"].content}
+
+【🔮 Oracle 外部情报】
+{oracle_content if oracle_content else "(未提供外部情报)"}
+
+【工具级事实锚定报告】
+{grounding_report_md if grounding_report_md else '(未启用)'}
 """
     try:
-        with ThinkingSpinner(f"weighing arguments via {model}..."):
+        with ThinkingSpinner(f"Final Verdict via {model}...", delay=0.1):
             adjudicator_resp = client.chat(
                 messages=[
                     {"role": "system", "content": AdjudicatorPrompt},
@@ -274,55 +300,29 @@ def run_debate(target_file: str, reference_file: str = "", instruction: str = ""
                 **AdjudicatorConfig
             )
         usage_stats["adjudicator"] = adjudicator_resp.usage
-        
-        # Post-Response Citation Audit
-        if kwargs.get('cite_check'):
-            total_lines = len(target_content.splitlines())
-            # Simple heuristic for citation hallucination: check if cited line exceeds file length
-            citations = re.findall(r"\[Line\s*(\d+)\]", adjudicator_resp.content)
-            for c in citations:
-                if int(c) > total_lines:
-                    logger.warning(f"{Colors.RED}⚠️  Citation Hallucination Detected: Line {c} exceeds total lines ({total_lines}).{Colors.ENDC}")
-            
-            if not citations and "引用" not in adjudicator_resp.content:
-                logger.warning(f"{Colors.YELLOW}⚠️  Citation Check Warning: Adjudicator did not explicitly cite lines.{Colors.ENDC}")
-            
-        one_liner = extract_one_liner(adjudicator_resp.content)
-        logger.info(f"{Colors.GREEN}✅ Verdict reached.{Colors.ENDC} ({format_usage(adjudicator_resp.usage)})")
-        if one_liner:
-            logger.info(f"{Colors.YELLOW}⚖️  One-Liner: {Colors.ENDC}{one_liner}")
-        
-        # New: Logic Pulse - Extract the first conflict point for quick scanning
-        pulse_match = re.search(r"\* \*\*焦点\[.*?\]\*\*：(.*?)(?=\s*\*|\s*###|$)", adjudicator_resp.content, re.DOTALL)
-        if pulse_match:
-            pulse_text = pulse_match.group(1).strip().replace('\n', ' ')
-            logger.info(f"{Colors.CYAN}🧬 Logic Pulse: {Colors.ENDC}{pulse_text[:120]}...\n")
-        else:
-            logger.info("") # Just a newline
-        logger.debug(f"Adjudicator Content:\n{adjudicator_resp.content[:500]}...")
     except Exception as e:
-        logger.error(f"{Colors.RED}💥 Adjudicator Phase Failed: {e}{Colors.ENDC}", exc_info=True)
-        return
+        logger.error(f"💥 Adjudicator failed: {e}")
+        return None
+    
     time_stats["adjudicator"] = time.time() - phase_start
+    
+    one_liner = extract_one_liner(adjudicator_resp.content)
+    logger.info(f"{Colors.GREEN}✅ Verdict reached.{Colors.ENDC} ({format_usage(adjudicator_resp.usage)})")
+    if one_liner:
+        logger.info(f"{Colors.YELLOW}⚖️  Verdict: {Colors.ENDC}{one_liner}")
 
-    # Save Report
-    save_start = time.time()
+    # ---------------------------------------------------------
+    # Save Report (with Gatekeeper Header)
+    # ---------------------------------------------------------
     timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
     target_p = Path(target_file).absolute()
     
-    # Improved directory logic: Mirror target's relative path to avoid collisions
     try:
-        # Get path relative to current working directory or project root
-        # We use a simplified mapping to avoid too many nested folders if possible, 
-        # but full relative path is safest against collisions.
         rel_from_root = target_p.relative_to(project_root)
-        # remove the filename from tail to get parent structure
         rel_dir = rel_from_root.parent
-        # Remove redundant 'docs' prefix if present to avoid docs/reports/docs/...
         if rel_dir.parts and rel_dir.parts[0] == 'docs':
              rel_dir = Path(*rel_dir.parts[1:])
     except ValueError:
-        # Fallback for files outside project root
         rel_dir = Path("external")
     
     report_tag = target_p.stem
@@ -330,56 +330,48 @@ def run_debate(target_file: str, reference_file: str = "", instruction: str = ""
     report_dir.mkdir(parents=True, exist_ok=True)
     report_path = report_dir / f"debate_{timestamp_str}.md"
     
-    # Path Sanitization for report
     try:
         rel_target = Path(target_file).absolute().relative_to(project_root)
-        rel_ref = Path(reference_file).absolute().relative_to(project_root) if reference_file else "N/A"
     except ValueError:
         rel_target = target_file
-        rel_ref = reference_file if reference_file else "N/A"
 
-    report_content = f"""# Council Debate Report
-**Date**: {timestamp_str}
-**Target**: `{rel_target}`
-**Objective**: {instruction if instruction else 'Standard Optimization'}
-**Ref**: `{rel_ref}`
+    gatekeeper_header = f"""# 🛡️ Gatekeeper Approval Request
+> **Human-in-the-Loop Protocol**
+> Please review this summary and authorize the next step.
+
+- **Target**: `{rel_target}`
+- **Date**: {timestamp_str}
+- **Verdict**: {one_liner if one_liner else "See Details"}
+
+## ✅ Approval Checkbox
+- [ ] **APPROVE**: Proceed with implementation.
+- [ ] **REJECT**: Return to design phase.
+
+---
+"""
+
+    report_content = f"""{gatekeeper_header}
+# Council Debate Report
+
+## ✊ Affirmative (Value Defender)
+{responses["affirmative"].content}
 
 ---
 
-## ✊ Affirmative ({AffirmativeConfig.get('model')})
-{affirmative_resp.content}
+## 👊 Negative (Risk Auditor + Oracle Challenger)
+{responses["negative"].content}
 
 ---
 
-## 👊 Negative ({NegativeConfig.get('model')})
-{negative_resp.content}
-
----
-
-## ⚖️ Adjudicator ({AdjudicatorConfig.get('model')})
+## ⚖️ Adjudicator (Final Verdict)
 {adjudicator_resp.content}
+
+---
+{grounding_report_md}
 """
     report_path.write_text(report_content, encoding='utf-8')
     logger.info(f"\n📄 Report saved to: {Colors.BOLD}{report_path}{Colors.ENDC}")
-    
-    # Execution Summary
-    total_time = time.time() - start_time
-    total_tokens = sum(
-        (u.total_tokens if u else 0) for u in usage_stats.values()
-    )
-    
-    logger.info(f"\n{Colors.BOLD}📊 Execution Summary{Colors.ENDC}")
-    logger.info("--------------------------------------------------")
-    logger.info(f"| {'Phase':<15} | {'Duration (s)':<12} | {'Tokens':<15} |")
-    logger.info("--------------------------------------------------")
-    for phase in ["affirmative", "negative", "adjudicator"]:
-        dur = f"{time_stats.get(phase, 0):.2f}"
-        usage = usage_stats.get(phase)
-        tok = usage.total_tokens if usage else 0
-        logger.info(f"| {phase.capitalize():<15} | {dur:<12} | {tok:<15} |")
-    logger.info("--------------------------------------------------")
-    logger.info(f"| {'Total':<15} | {total_time:.2f}{'':<8} | {total_tokens:<15} |")
-    logger.info("--------------------------------------------------")
+    logger.info(f"{Colors.YELLOW}👉 ACTION REQUIRED: Review the 'Gatekeeper Approval' section in the report.{Colors.ENDC}")
     
     return report_path
 
@@ -391,6 +383,7 @@ if __name__ == "__main__":
     parser.add_argument("--instruction", "-i", help="Temporary user instruction", default="")
     parser.add_argument("--loop", type=int, help="Current iteration loop number", default=0)
     parser.add_argument("--cite", action="store_true", help="Enable strict citation enforcement")
+    parser.add_argument("--oracle", help="Path to Oracle knowledge file (created by oracle_scanner.py)", default="")
     
     args = parser.parse_args()
     if not os.path.exists(args.target):
@@ -398,11 +391,17 @@ if __name__ == "__main__":
         sys.exit(1)
         
     try:
-        result = run_debate(args.target, args.ref, args.instruction, loop=args.loop, cite_check=args.cite)
+        result = run_debate(
+            args.target, 
+            args.ref, 
+            args.instruction, 
+            loop=args.loop, 
+            cite_check=args.cite,
+            oracle_file=args.oracle
+        )
         if not result:
             sys.exit(1)
         sys.exit(0)
     except KeyboardInterrupt:
-        print(f"\n{Colors.YELLOW}⚠️  Debate interrupted by user (Ctrl+C). Exiting...{Colors.ENDC}")
-        # Force exit to stop child threads if they are hanging
+        print(f"\n{Colors.YELLOW}⚠️  Debate interrupted by user.{Colors.ENDC}")
         os._exit(1)

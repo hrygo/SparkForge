@@ -16,36 +16,35 @@
 
 ### ✊ 正方：战略支持者 (The Affirmative)
 
-- **选型模型**: **Google Gemini 3.0 Pro**
+- **选型模型**: **Qwen-2.5-72B-Instruct** (Alibaba / via SiliconFlow)
 - **核心任务**: 挖掘价值、跨界联想、构建愿景。
 - **选型逻辑**:
-  - **联想力 (Association)**: Gemini 系列拥有最强的多模态底座和长窗口记忆，极擅长发散性思维和跨学科知识迁移。
-  - **创造性 (Creativity)**: 相比其他模型，Gemini 在生成建设性、启发性内容时表现出更高的热情和多样性。
+  - **通识广博 (Generalist)**: Qwen 系列在通用知识库和创意写作上表现卓越，思维活跃度高，与 DeepSeek 的“理工男”思维形成鲜明对比。
+  - **创造性 (Creativity)**: 适合发散性思考，能够从平庸的方案中挖掘出潜在的商业价值。
 - **参数策略**:
-  - `Temperature = 0.9`: 高温设置，鼓励模型跳出常规逻辑，寻找边缘创新点。
-  - `Top_P = 0.95`: 保持词汇选择的丰富性。
+  - `Temperature = 0.8`: Qwen 最佳甜点动作区，平衡了创意与连贯性，避免 1.0 下的过度发散。
+  - `Top_P = 0.95`: 保持词汇丰富性。
 
-### 👊 反方：风险控制官 (The Negative)
+### 👊 反方：风险审计官 (The Negative)
 
-- **选型模型**: **DeepSeek-V3**
+- **选型模型**: **DeepSeek-V3** (DeepSeek Inc.)
 - **核心任务**: 逻辑查错、压力测试、寻找死角。
 - **选型逻辑**:
-  - **纯理性 (Pure Logic)**: DeepSeek 拥有极强的 Coding/Math 基因，思维方式接近编译器，对逻辑断层极其敏感。
-  - **冷峻 (Cold-blooded)**: 它不擅长“端水”，直击痛点的能力远超经过过度 RLHF (人类反馈对齐) 的欧美模型。
+  - **冷峻逻辑 (Pure Logic)**: DeepSeek 拥有极强的 Coding/Math 基因，思维严谨如编译器，对逻辑断层极其敏感。
+  - **红队基因 (Red Teaming)**: 它是目前国产模型中最适合做“恶人”的角色，不擅长奉承，直击痛点。
 - **参数策略**:
-  - `Temperature = 0.6`: 中低温设置，抑制幻觉，确保反驳基于坚实的逻辑链条而非情绪宣泄。
-  - `Provider`: `deepseek` (直连以保证原汁原味的推理能力)。
+  - `Temperature = 1.0`: **官方推荐配置**。DeepSeek V3 架构特殊，在 1.0 温度下逻辑推理能力最强，低温反而可能抑制思维链。
+  - `Provider`: `deepseek` (直连保证原汁原味)。
 
 ### ⚖️ 裁判：首席裁决官 (The Adjudicator)
 
-- **选型模型**: **Zhipu GLM-4.6** (via SiliconFlow)
+- **选型模型**: **GLM-4-Plus** (Zhipu AI / via SiliconFlow)
 - **核心任务**: 综合权衡、深度决断、行动规划。
 - **选型逻辑**:
-  - **慢思考 (System 2)**: GLM-4.6 具备类似 o1 的深度推理能力，适合处理需要多步权衡的裁决任务。
-  - **中正平和 (Balance)**: 在中文语境下，GLM 对"言外之意"和"文化潜台词"的理解力最强，能很好地平衡激进与保守的观点。
-  - **Agent Native**: 极强的指令遵循能力，确保产出的裁决报告严格符合结构化要求。
+  - **中正平和 (Balance)**: GLM 系列在中文语境下对“言外之意”和“平衡感”的把握极佳，适合做最终的拍板人。
+  - **指令遵循 (Instruction Following)**: 能够严格按照复杂的评分矩阵输出结构化报告。
 - **参数策略**:
-  - `Temperature = 0.2`: 极低温设置，要求裁判绝对冷静、客观，输出稳定可复现的结果。
+  - `Temperature = 0.2`: 极低温设置，要求裁判绝对冷静、客观。
 
 ---
 
@@ -58,8 +57,8 @@
 ```yaml
 ---
 model_config:
-  provider: gemini
-  model: gemini-3.0-pro-preview
+  provider: siliconflow
+  model: Qwen/Qwen2.5-72B-Instruct
   temperature: 0.9 # 高创造性
   max_tokens: 8192 # 允许长篇论证
 ---
@@ -69,7 +68,7 @@ Draft content...
 
 ### 调整指南
 
-1. **如果正方不够兴奋**: 提高 Gemini 的 `temperature` 至 1.0，或尝试 Grok (OpenRouter)。
+1. **如果正方不够兴奋**: 提高 Qwen 的 `temperature` 至 1.0，或尝试 Yi-Lightning (01.AI)。
 2. **如果反方攻击性不足**: 确认使用的是 DeepSeek 原生接口，避免中间商的 System Prompt 干扰。
 3. **如果裁判逻辑混乱**: 降低 GLM 的 `temperature` 至 0.1，或开启思维链模式。
 
