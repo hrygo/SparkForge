@@ -59,9 +59,10 @@ class MathJaxPostprocessor(Postprocessor):
         if not hasattr(self.md, 'mathjax_stash'):
             return text
             
-        # Iterate and replace. We sort by length descending to avoid prefix issues (though keys are unique)
-        # But keys are simple unique IDs, so order doesn't strictly matter if keys are distinct.
-        for key, value in self.md.mathjax_stash.items():
+        # Iterate and replace. We sort by length descending to avoid prefix issues
+        # (e.g. ensuring MATHJAX_STASH_KEY_1 does not clobber MATHJAX_STASH_KEY_10)
+        sorted_stash = sorted(self.md.mathjax_stash.items(), key=lambda item: len(item[0]), reverse=True)
+        for key, value in sorted_stash:
             text = text.replace(key, value)
         return text
 
@@ -344,7 +345,7 @@ def main():
         shutil.copy(temp_pdf_path, final_pdf_path)
         
     # Cleanup
-    shutil.rmtree(temp_dir)
+    # shutil.rmtree(temp_dir)
 
 if __name__ == "__main__":
     main()

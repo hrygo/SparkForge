@@ -170,13 +170,13 @@ graph LR
 为消除“参数生成黑箱”，本方案定义了严谨的转化算法，确保每个仿真参数均可溯源至附录原始凭证。
 
 - **环境压力参数转化算法**：
-  - **双录网络中断率 ($P_{\text{net\_fail}}$)**：
-    $$ P_{\text{net\_fail}} = \left( \frac{\text{COUNT(附录B中‘影像上传失败’记录)}}{\text{COUNT(附录B中所有‘双录’或‘影像上传’任务记录)}} \right) \times K $$
+  - **双录网络中断率 ($P_{\mathrm{net\_fail}}$)**：
+    $$ P_{\mathrm{net\_fail}} = \left( \frac{\text{COUNT(附录B中‘影像上传失败’记录)}}{\text{COUNT(附录B中所有‘双录’或‘影像上传’任务记录)}} \right) \times K $$
     *注：$K$ 为环境放大系数，默认 1.0，可视历史网络监控日志波动情况进行修正。*
 
 - **Persona 参数转化算法**：
-  - **工具依赖度得分 ($S_{\text{tool}}$)**：
-    $$ S_{\text{tool}} = \sum ( \text{Freq}_{i} \times W_{i} ) $$
+  - **工具依赖度得分 ($S_{\mathrm{tool}}$)**：
+    $$ S_{\mathrm{tool}} = \sum ( \text{Freq}_{i} \times W_{i} ) $$
     *注：$\text{Freq}_{i}$ 为应用 $i$ 在[附录C](#appendix-c)/[D](#appendix-d)标签中的出现频率；$W_{i}$ 为该应用的各类权重（如：核心业务系统=1.0, 辅助工具=0.6, 临时应用=0.3）。*
 
 ##### 4.3.1.1 ⚔️ 多源数据融合与冲突仲裁矩阵

@@ -41,19 +41,20 @@ The SparkForge Chronicles: Breaking the Cage of Compliance
 
 为了治病，Agent 们提出了豪华的治疗方案：
 
-1.  *接入非 LLM 的形式化验证引擎*
+1. _接入非 LLM 的形式化验证引擎_
     **Architect** 还没看完标题就划掉了："这会让系统复杂度呈指数级爆炸。我们不是在造航天飞机。"
-    *(Status: 坚决拒绝)*
+    _(Status: 坚决拒绝)_
 
-2.  *引入语义锚定检查器 (Semantic Grounding Checker)*
+2. _引入语义锚定检查器 (Semantic Grounding Checker)_
     **Architect** 犹豫了一下："这是正确的方向，但在目前的工程条件下，性价比太低。"
-    *(Status: 暂时搁置)*
+    _(Status: 暂时搁置)_
 
-3.  *构建元裁决官 (Meta-Adjudicator)*
+3. _构建元裁决官 (Meta-Adjudicator)_
     "用一个 AI 去监督另一个 AI？那谁来监督那个监督者？这将陷入无限递归的泥潭。"
-    *(Status: 逻辑否决)*
+    _(Status: 逻辑否决)_
 
 面对着一地的废稿，**Architect** 给出了最终指令：
+
 > **"我只要改 10%，解决 90% 的问题。剩下的 10% 完美主义，留给上帝。"**
 
 这就是 **Protocol 90/10** 的真正含义：
